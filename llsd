@@ -1,1 +1,0 @@
-2026-02-14T15:12:13.004+0300	INFO	app/main.go:34	Server starts on localhost:8080	{"App-Name": "Paste-Bin-App", "App-Version": "v1.0.0"}
