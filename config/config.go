@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/StewardMcCormick/Paste_Bin/pkg/httpserver"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 )
@@ -10,14 +11,9 @@ type App struct {
 	Version string `yaml:"version" env-required:"true"`
 }
 
-type Server struct {
-	Host string `env:"SERVER_HOST" env-default:"localhost"`
-	Port string `env:"SERVER_PORT" env-default:"80"`
-}
-
 type Config struct {
-	App    App    `yaml:"app"`
-	Server Server `yaml:"server"`
+	App    App
+	Server httpserver.Config
 }
 
 func InitConfig() (*Config, error) {
