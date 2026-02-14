@@ -29,8 +29,8 @@ func LoggerMiddleware(logger *zap.Logger) func(handler http.Handler) http.Handle
 
 			reqLogger.Info("[NEW REQUEST]")
 
-			ctx := context.WithValue(r.Context(), "logger", reqLogger)
-			ctx = context.WithValue(ctx, "request_id", requestId)
+			ctx := context.WithValue(r.Context(), loggerKey, reqLogger)
+			ctx = context.WithValue(ctx, requestIdKey, requestId)
 
 			next.ServeHTTP(wrapped, r.WithContext(ctx))
 

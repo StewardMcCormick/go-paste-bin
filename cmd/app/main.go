@@ -31,7 +31,7 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 	}
 
 	handler := handlers.NewHandler()
-	router := HTTP.Router(handler, logger)
+	router := HTTP.NewRouter(handler, logger)
 
 	server := httpserver.New(router, &cfg.Server)
 

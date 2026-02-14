@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func Router(handler handlers.Handler, logger *zap.Logger) http.Handler {
+func NewRouter(handler handlers.Handlers, logger *zap.Logger) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.LoggerMiddleware(logger))
