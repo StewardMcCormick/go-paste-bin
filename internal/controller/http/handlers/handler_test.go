@@ -1,7 +1,9 @@
-package http
+package handlers
 
 import (
+	http2 "github.com/StewardMcCormick/Paste_Bin/internal/controller/http"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -9,7 +11,7 @@ import (
 )
 
 var (
-	router = Router()
+	router = http2.Router(zap.L())
 )
 
 func TestHandler_HelloHandler(t *testing.T) {
