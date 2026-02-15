@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS users(
     id SERIAL PRIMARY KEY,
     username varchar(30) UNIQUE NOT NULL,
@@ -39,5 +37,3 @@ CREATE TABLE IF NOT EXISTS api_key(
 CREATE INDEX IF NOT EXISTS api_key_hash_idx ON api_key USING HASH (key_hash);
 
 CREATE INDEX IF NOT EXISTS api_key_expire_at_idx ON api_key(expire_at);
-
-COMMIT
