@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type connectionConfig struct {
+type ConnectionConfig struct {
 	ConnectionTimeout     time.Duration `yaml:"connection_timeout" default:"5s"`
 	MaxConnections        int32         `yaml:"max_connections" default:"4"`
 	MinConnections        int32         `yaml:"min_connections" default:"0"`
@@ -23,7 +23,7 @@ type Config struct {
 	Port             string           `env:"POSTGRES_PORT" env-default:"5432"`
 	Host             string           `env:"POSTGRES_HOST" env-default:"localhost"`
 	DbName           string           `env:"POSTGRES_DB" required:"true"`
-	ConnectionConfig connectionConfig `yaml:"connection_config"`
+	ConnectionConfig ConnectionConfig `yaml:"connection_config"`
 }
 
 type Pool struct {
