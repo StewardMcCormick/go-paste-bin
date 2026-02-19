@@ -23,6 +23,7 @@ type Config struct {
 	Port             string           `env:"POSTGRES_PORT" env-default:"5432"`
 	Host             string           `env:"POSTGRES_HOST" env-default:"localhost"`
 	DbName           string           `env:"POSTGRES_DB" required:"true"`
+	MigrationsPath   string           `yaml:"migrations_path" required:"true"`
 	ConnectionConfig ConnectionConfig `yaml:"connection_config"`
 }
 

@@ -7,9 +7,9 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-func Exec(dbUrl string) error {
+func Exec(dbUrl string, migrationsPath string) error {
 	m, err := migrate.New(
-		"file://./internal/migrations/postgres", // TODO refactor - get migration`s path from cfg
+		"file://"+migrationsPath, // TODO refactor - get migration`s path from cfg
 		dbUrl,
 	)
 	if err != nil {

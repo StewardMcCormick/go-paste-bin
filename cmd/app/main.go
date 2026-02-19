@@ -48,7 +48,7 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 	logger.Info("[START] PGX initialization completed")
 
 	logger.Info("[START] DataBase migrations executing...")
-	err = migrations.Exec(cfg.Postgres.DbUrl)
+	err = migrations.Exec(cfg.Postgres.DbUrl, cfg.Postgres.MigrationsPath)
 	if err != nil {
 		if errors.Is(err, migrate.ErrNoChange) {
 			logger.Info("[START] Migrations - nothing to change")

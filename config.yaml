@@ -5,7 +5,7 @@ app:
 
 logger:
   level: "debug"
-  outputs: ["stdout"]
+  outputs: [ "stdout" ]
 
 postgres:
   connection_config:
@@ -15,6 +15,7 @@ postgres:
     max_connection_live_time: "1h"
     max_connection_idle_time: "30m"
     health_check_period: "1m"
+  migrations_path: "./internal/migrations/postgres"
 
 auth:
   api_key_expires_time: "168h"
