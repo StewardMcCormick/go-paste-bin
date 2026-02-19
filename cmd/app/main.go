@@ -7,6 +7,7 @@ import (
 	"github.com/StewardMcCormick/Paste_Bin/config"
 	"github.com/StewardMcCormick/Paste_Bin/internal/adapter/postgres"
 	"github.com/StewardMcCormick/Paste_Bin/internal/handler"
+	"github.com/StewardMcCormick/Paste_Bin/internal/handler/middleware"
 	userH "github.com/StewardMcCormick/Paste_Bin/internal/handler/user"
 	userRepo "github.com/StewardMcCormick/Paste_Bin/internal/repository/user"
 	userUseCase "github.com/StewardMcCormick/Paste_Bin/internal/usecase/user"
@@ -30,7 +31,7 @@ func main() {
 	AppRun(context.Background(), cfg)
 }
 
-// tests for already done components -> validation + tests (middleware) -> logging in -> ... TODO
+// validation + tests (middleware) -> logging in -> ... TODO
 
 func AppRun(ctx context.Context, cfg *config.Config) {
 	logger, err := logging.NewLogger(cfg.Logger, cfg.App.Env, cfg.App.Name, cfg.App.Version)
@@ -62,8 +63,18 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 	userUC := userUseCase.NewUseCase(userRepository, securityUtil, cfg.Auth)
 
 	logger.Info("[START] Server initialization...")
+
+	logMid := middleware.NewLogging(logger)
+	recoverMid := middleware.NewRecoverer()
+	envMid := middleware.NewEnv(cfg.App.Env)
+
 	userHandler := userH.NewHandler(userUC)
-	router := handler.NewRouter(userHandler, logger, cfg.App.Env)
+	router := handler.NewRouter(
+		userHandler,
+		logMid,
+		recoverMid,
+		envMid,
+	)
 	server := httpserver.New(router, &cfg.Server)
 
 	go func() {

@@ -7,7 +7,14 @@ import (
 	"net/http"
 )
 
-func RecovererMiddleware(next http.Handler) http.Handler {
+type Recoverer struct {
+}
+
+func NewRecoverer() Recoverer {
+	return Recoverer{}
+}
+
+func (m *Recoverer) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
