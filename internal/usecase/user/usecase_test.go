@@ -9,6 +9,7 @@ import (
 	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
 	"github.com/StewardMcCormick/Paste_Bin/internal/usecase/user/mocks"
 	midd "github.com/StewardMcCormick/Paste_Bin/internal/util/http_util"
+	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"strings"
@@ -30,7 +31,9 @@ func TestUseCaseSuite(t *testing.T) {
 func (s *UseCaseTestSuite) SetupTest() {
 	s.repo = mocks.NewMockRepository(s.T())
 	s.security = mocks.NewMockSecurityUtil(s.T())
-	s.useCase = NewUseCase(s.repo, s.security, Config{APIKeyExpireDuration: 162 * time.Hour})
+	s.useCase = NewUseCase(s.repo, s.security,
+		validator.New(validator.WithRequiredStructEnabled()), Config{APIKeyExpireDuration: 162 * time.Hour},
+	)
 }
 
 func (s *UseCaseTestSuite) Test_Registration_Success() {
@@ -85,7 +88,7 @@ func (s *UseCaseTestSuite) Test_Registration_Success() {
 	s.NotNil(result.CreatedAt)
 }
 
-func (s *UseCaseTestSuite) Test_Registration_Error() {
+func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
 	cases := []struct {
 		name       string
 		setupMocks func()
