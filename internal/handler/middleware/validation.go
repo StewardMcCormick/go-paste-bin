@@ -23,19 +23,19 @@ func (m *JSONValidation) Handler(next http.Handler) http.Handler {
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			errs.SendHTTPError(r.Context(), w, http.StatusBadRequest,
+			errs.SendAppError(r.Context(), w, http.StatusBadRequest,
 				fmt.Errorf("cannot read JSON request body: %v", body),
 			)
 			return
 		}
 
 		if len(body) == 0 {
-			errs.SendHTTPError(r.Context(), w, http.StatusBadRequest, errors.New("request body is required"))
+			errs.SendAppError(r.Context(), w, http.StatusBadRequest, errors.New("request body is required"))
 			return
 		}
 
 		if !json.Valid(body) {
-			errs.SendHTTPError(r.Context(), w, http.StatusBadRequest,
+			errs.SendAppError(r.Context(), w, http.StatusBadRequest,
 				errors.New("invalid JSON"),
 			)
 			return

@@ -12,6 +12,7 @@ import (
 	userRepo "github.com/StewardMcCormick/Paste_Bin/internal/repository/user"
 	userUseCase "github.com/StewardMcCormick/Paste_Bin/internal/usecase/user"
 	"github.com/StewardMcCormick/Paste_Bin/internal/util/security"
+	"github.com/StewardMcCormick/Paste_Bin/internal/validation"
 	"github.com/StewardMcCormick/Paste_Bin/pkg/httpserver"
 	"github.com/StewardMcCormick/Paste_Bin/pkg/logging"
 	"github.com/StewardMcCormick/Paste_Bin/pkg/migrations"
@@ -61,7 +62,7 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 
 	userRepository := userRepo.NewRepository(pool)
 	securityUtil := security.NewUtil()
-	valid := validator.New(validator.WithRequiredStructEnabled())
+	valid := validation.NewUserValidator(validator.New(validator.WithRequiredStructEnabled()))
 	userUC := userUseCase.NewUseCase(userRepository, securityUtil, valid, cfg.Auth)
 
 	logger.Info("[START] Server initialization...")

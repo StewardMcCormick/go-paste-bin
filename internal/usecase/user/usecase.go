@@ -7,7 +7,7 @@ import (
 	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
 	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
 	"github.com/StewardMcCormick/Paste_Bin/internal/util"
-	"github.com/go-playground/validator/v10"
+	"github.com/StewardMcCormick/Paste_Bin/internal/validation"
 	"time"
 )
 
@@ -29,11 +29,11 @@ type SecurityUtil interface {
 type UseCase struct {
 	repo         Repository
 	securityUtil SecurityUtil
-	valid        *validator.Validate
+	valid        *validation.UserValidator
 	cfg          Config
 }
 
-func NewUseCase(repo Repository, securityUtil SecurityUtil, valid *validator.Validate, cfg Config) *UseCase {
+func NewUseCase(repo Repository, securityUtil SecurityUtil, valid *validation.UserValidator, cfg Config) *UseCase {
 	return &UseCase{
 		repo:         repo,
 		securityUtil: securityUtil,
@@ -45,7 +45,7 @@ func NewUseCase(repo Repository, securityUtil SecurityUtil, valid *validator.Val
 func (uc *UseCase) Registration(ctx context.Context, user *dto.CreateUserRequest) (*dto.UserResponse, error) {
 	log := util.GetLoggerFromCtx(ctx)
 
-	if err := uc.valid.Struct(user); err != nil {
+	if err := uc.valid.Validate(user); err != nil {
 		return nil, err
 	}
 

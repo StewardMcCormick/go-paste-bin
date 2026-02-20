@@ -195,3 +195,7 @@ func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
 		})
 	}
 }
+
+func (s *UseCaseTestSuite) Test_Registration_ValidationError() {
+	
+}

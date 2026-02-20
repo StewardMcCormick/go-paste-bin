@@ -1,36 +1,27 @@
 package error
 
 import (
-	"context"
-	"encoding/json"
 	"errors"
-	"github.com/StewardMcCormick/Paste_Bin/internal/util"
-	"net/http"
+	"fmt"
 )
 
 var (
 	InternalError = errors.New("internal error")
 
 	// Domain error
-	UserAlreadyExists = errors.New("user already exists")
+	UserAlreadyExists   = errors.New("user already exists")
+	UserValidationError = errors.New("validation error")
 )
 
-type Response struct {
+type BaseError struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 }
 
-func SendHTTPError(ctx context.Context, w http.ResponseWriter, status int, message error) {
-	log := util.GetLoggerFromCtx(ctx)
+func (r BaseError) Error() string {
+	return fmt.Sprint(r)
+}
 
-	response := Response{status, message.Error()}
-	w.WriteHeader(status)
-
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		log.Error(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	log.Info(message.Error())
+func (r BaseError) Code() int {
+	return r.Status
 }

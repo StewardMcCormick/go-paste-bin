@@ -17,16 +17,16 @@ func (h *httpHandlers) Registration(w http.ResponseWriter, r *http.Request) {
 	user, err := h.UserUseCase.Registration(r.Context(), &userRequest)
 	if err != nil {
 		if errors.Is(err, errs.UserAlreadyExists) {
-			errs.SendHTTPError(r.Context(), w, http.StatusConflict, err)
+			errs.SendAppError(r.Context(), w, http.StatusConflict, err)
 			return
 		} else if errors.Is(err, errs.InternalError) {
-			errs.SendHTTPError(r.Context(), w, http.StatusInternalServerError, err)
+			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, err)
 			return
 		} else if errors.As(err, &validator.ValidationErrors{}) {
-			errs.SendValidationError(r.Context(), w, http.StatusBadRequest, err.(validator.ValidationErrors))
+			errs.SendAppError(r.Context(), w, http.StatusBadRequest, err.(validator.ValidationErrors))
 			return
 		}
-		errs.SendHTTPError(r.Context(), w, http.StatusBadRequest, err)
+		errs.SendAppError(r.Context(), w, http.StatusBadRequest, err)
 		return
 	}
 
