@@ -1,27 +1,26 @@
 package middleware
 
 import (
-	"context"
 	"github.com/StewardMcCormick/Paste_Bin/config/cfg_util"
-	httpUtil "github.com/StewardMcCormick/Paste_Bin/internal/util/http_util"
+	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 	"net/http"
 )
 
 type Environmental struct {
-	env cfgUtil.Env
+	env cfgutil.Env
 }
 
-func NewEnv(env cfgUtil.Env) Environmental {
+func NewEnv(env cfgutil.Env) Environmental {
 	return Environmental{env}
 }
 
 func (m *Environmental) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if m.env == "" || (m.env != cfgUtil.ProductionEnv && m.env != cfgUtil.DevelopmentEnv) {
-			m.env = cfgUtil.ProductionEnv
+		if m.env == "" || (m.env != cfgutil.ProductionEnv && m.env != cfgutil.DevelopmentEnv) {
+			m.env = cfgutil.ProductionEnv
 		}
 
-		ctx := context.WithValue(r.Context(), httpUtil.EnvKey, m.env)
+		ctx := appctx.WithEnv(r.Context(), m.env)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

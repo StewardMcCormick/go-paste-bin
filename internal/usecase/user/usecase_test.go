@@ -8,7 +8,7 @@ import (
 	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
 	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
 	"github.com/StewardMcCormick/Paste_Bin/internal/usecase/user/mocks"
-	midd "github.com/StewardMcCormick/Paste_Bin/internal/util/http_util"
+	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 	"github.com/StewardMcCormick/Paste_Bin/internal/validation"
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/mock"
@@ -77,7 +77,7 @@ func (s *UseCaseTestSuite) Test_Registration_Success() {
 		Return(expected, nil).
 		Once()
 
-	ctx := context.WithValue(context.Background(), midd.EnvKey, cfgUtil.DevelopmentEnv)
+	ctx := context.WithValue(context.Background(), appctx.EnvKey, cfgUtil.DevelopmentEnv)
 	result, err := s.useCase.Registration(ctx,
 		&dto.CreateUserRequest{Username: expected.Username, Password: expected.Password})
 

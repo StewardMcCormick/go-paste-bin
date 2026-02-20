@@ -11,11 +11,11 @@ type Config struct {
 	Outputs []string `yaml:"outputs" env-required:"true"`
 }
 
-func NewLogger(cfg Config, env cfgUtil.Env, appName, appVersion string) (*zap.Logger, error) {
+func NewLogger(cfg Config, env cfgutil.Env, appName, appVersion string) (*zap.Logger, error) {
 	var loggerConfig zap.Config
 
 	switch env {
-	case cfgUtil.DevelopmentEnv:
+	case cfgutil.DevelopmentEnv:
 		loggerConfig = zap.NewDevelopmentConfig()
 	default:
 		loggerConfig = zap.NewProductionConfig()

@@ -13,7 +13,7 @@ import (
 type App struct {
 	Name    string      `yaml:"name" env-required:"true"`
 	Version string      `yaml:"version" env-required:"true"`
-	Env     cfgUtil.Env `yaml:"env" env-default:"prod"`
+	Env     cfgutil.Env `yaml:"env" env-default:"prod"`
 }
 
 type Config struct {

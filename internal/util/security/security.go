@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	cfgUtil "github.com/StewardMcCormick/Paste_Bin/config/cfg_util"
-	httpUtil "github.com/StewardMcCormick/Paste_Bin/internal/util/http_util"
+	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,7 +34,7 @@ func (s *Util) HashAPIKey(key string) string {
 
 func (s *Util) GenerateAPIKey(ctx context.Context) (keyPrefix string, key string, err error) {
 	var prefix string
-	switch ctx.Value(httpUtil.EnvKey) {
+	switch ctx.Value(appctx.EnvKey) {
 	case cfgUtil.DevelopmentEnv:
 		prefix = "pb_test"
 	default:

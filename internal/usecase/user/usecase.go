@@ -6,7 +6,7 @@ import (
 	"github.com/StewardMcCormick/Paste_Bin/internal/domain"
 	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
 	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
-	"github.com/StewardMcCormick/Paste_Bin/internal/util"
+	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 	"github.com/StewardMcCormick/Paste_Bin/internal/validation"
 	"time"
 )
@@ -43,7 +43,7 @@ func NewUseCase(repo Repository, securityUtil SecurityUtil, valid *validation.Us
 }
 
 func (uc *UseCase) Registration(ctx context.Context, user *dto.CreateUserRequest) (*dto.UserResponse, error) {
-	log := util.GetLoggerFromCtx(ctx)
+	log := appctx.GetLogger(ctx)
 
 	if err := uc.valid.Validate(user); err != nil {
 		return nil, err

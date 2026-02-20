@@ -1,4 +1,4 @@
-package cfgUtil
+package cfgutil
 
 type Env string
 

@@ -1,16 +1,7 @@
-package http_util
+package httputil
 
 import (
 	"net/http"
-)
-
-type loggerCtxKey string
-type requestIdCtxKey string
-
-var (
-	LoggerKey    loggerCtxKey    = "logger"
-	RequestIdKey requestIdCtxKey = "request_id"
-	EnvKey                       = "env"
 )
 
 type WriterWithStatusCode struct {

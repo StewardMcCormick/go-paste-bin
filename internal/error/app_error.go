@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/StewardMcCormick/Paste_Bin/internal/util"
+	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 	"net/http"
 )
 
@@ -14,7 +14,7 @@ type AppError interface {
 }
 
 func SendAppError(ctx context.Context, w http.ResponseWriter, status int, message error) {
-	log := util.GetLoggerFromCtx(ctx)
+	log := appctx.GetLogger(ctx)
 
 	if !errors.Is(message, InternalError) {
 		log.Info(message.Error())
