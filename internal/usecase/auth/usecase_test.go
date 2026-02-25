@@ -124,8 +124,8 @@ func (s *UseCaseTestSuite) Test_Registration_Success() {
 		Once()
 
 	s.userRepo.EXPECT().
-		Exists(mock.Anything, mock.Anything).
-		Return(false, nil).
+		GetByUsername(mock.Anything, mock.Anything).
+		Return(nil, nil).
 		Once()
 
 	s.security.EXPECT().
@@ -166,12 +166,37 @@ func (s *UseCaseTestSuite) Test_Registration_Success() {
 	s.NotNil(result.CreatedAt)
 }
 
-func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
+func (s *UseCaseTestSuite) Test_Registration_Error() {
 	cases := []struct {
 		name       string
 		setupMocks func()
 		wantError  error
 	}{
+		{
+			"Validation error",
+			func() {
+				s.valid.EXPECT().
+					Validate(mock.Anything).
+					Return(errs.UserValidationError).
+					Once()
+			},
+			errs.UserValidationError,
+		},
+		{
+			"Begin tx error",
+			func() {
+				s.valid.EXPECT().
+					Validate(mock.Anything).
+					Return(nil).
+					Once()
+
+				s.uowFactory.EXPECT().
+					Begin(mock.Anything).
+					Return(nil, errors.New("begin tx error")).
+					Once()
+			},
+			errs.InternalError,
+		},
 		{
 			"Check user existing - Already Exists Error",
 			func() {
@@ -184,15 +209,15 @@ func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
 					Once()
 
 				s.userRepo.EXPECT().
-					Exists(mock.Anything, mock.Anything).
-					Return(true, nil).
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(&domain.User{}, nil).
 					Once()
 
 			},
 			errs.UserAlreadyExists,
 		},
 		{
-			"Check auth existing - Internal Error",
+			"Check user existing - Internal Error",
 			func() {
 				s.expectBeginTx()
 				s.expectRollbackTx()
@@ -203,8 +228,8 @@ func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
 					Once()
 
 				s.userRepo.EXPECT().
-					Exists(mock.Anything, mock.Anything).
-					Return(false, errors.New("db error")).
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(nil, errors.New("db error")).
 					Once()
 
 			},
@@ -222,8 +247,8 @@ func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
 					Once()
 
 				s.userRepo.EXPECT().
-					Exists(mock.Anything, mock.Anything).
-					Return(false, nil).
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(nil, nil).
 					Once()
 
 				s.security.EXPECT().
@@ -246,8 +271,8 @@ func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
 					Once()
 
 				s.userRepo.EXPECT().
-					Exists(mock.Anything, mock.Anything).
-					Return(false, nil).
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(nil, nil).
 					Once()
 
 				s.security.EXPECT().
@@ -275,8 +300,8 @@ func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
 					Once()
 
 				s.userRepo.EXPECT().
-					Exists(mock.Anything, mock.Anything).
-					Return(false, nil).
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(nil, nil).
 					Once()
 
 				s.security.EXPECT().
@@ -314,8 +339,8 @@ func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
 					Once()
 
 				s.userRepo.EXPECT().
-					Exists(mock.Anything, mock.Anything).
-					Return(false, nil).
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(nil, nil).
 					Once()
 
 				s.security.EXPECT().
@@ -358,8 +383,8 @@ func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
 					Once()
 
 				s.userRepo.EXPECT().
-					Exists(mock.Anything, mock.Anything).
-					Return(false, nil).
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(nil, nil).
 					Once()
 
 				s.security.EXPECT().
@@ -410,58 +435,346 @@ func (s *UseCaseTestSuite) Test_Registration_NotValidationError() {
 	}
 }
 
-func (s *UseCaseTestSuite) Test_Registration_ValidationError() {
+func (s *UseCaseTestSuite) Test_Login_Success() {
+	now := time.Now()
+	expectedAPIKey := &dto.APIKeyResponse{
+		Key:       "pb_test_test_api_key",
+		ExpiresAt: now.Add(s.useCase.cfg.APIKeyExpireDuration),
+	}
+
+	s.expectTx()
+
+	s.valid.EXPECT().
+		Validate(mock.Anything).
+		Return(nil).
+		Once()
+
+	s.userRepo.EXPECT().
+		GetByUsername(mock.Anything, mock.Anything).
+		Return(&domain.User{}, nil).
+		Once()
+
+	s.security.EXPECT().
+		CompareHashAndPassword(mock.Anything, mock.Anything).
+		Return(true).
+		Once()
+
+	s.apiKeyRepo.EXPECT().
+		RevokeKeyByUserId(mock.Anything, mock.Anything).
+		Return(nil).
+		Once()
+
+	s.security.EXPECT().
+		GenerateAPIKey(mock.Anything).
+		Return("pb_test", expectedAPIKey.Key, nil).
+		Once()
+
+	s.security.EXPECT().
+		HashAPIKey(mock.Anything).
+		Return("hashed_key").
+		Once()
+
+	s.apiKeyRepo.EXPECT().
+		Create(mock.Anything, mock.Anything, mock.Anything).
+		Return(&domain.APIKey{Key: expectedAPIKey.Key, ExpiresAt: expectedAPIKey.ExpiresAt}, nil).
+		Once()
+
+	key, err := s.useCase.Login(context.Background(), &dto.UserRequest{})
+	s.NoError(err)
+	s.NotNil(key)
+	s.Equal(expectedAPIKey.Key, key.Key)
+	s.Equal(expectedAPIKey.ExpiresAt, key.ExpiresAt)
+}
+
+func (s *UseCaseTestSuite) Test_Login_Error() {
 	cases := []struct {
-		name      string
-		value     *dto.UserRequest
-		setupMock func()
-		wantErr   error
+		name       string
+		setupMocks func()
+		wantError  error
 	}{
 		{
-			name:  "auth with empty fields",
-			value: &dto.UserRequest{Username: "", Password: ""},
-			setupMock: func() {
+			"Validation Error",
+			func() {
 				s.valid.EXPECT().
 					Validate(mock.Anything).
-					Return(errors.New("auth with empty fields error")).
+					Return(errs.UserValidationError).
 					Once()
 			},
-			wantErr: errors.New("auth with empty fields error"),
+			errs.UserValidationError,
 		},
 		{
-			name:  "auth with too short fields",
-			value: &dto.UserRequest{Username: "Us", Password: "pass"},
-			setupMock: func() {
+			"Begin tx error",
+			func() {
 				s.valid.EXPECT().
 					Validate(mock.Anything).
-					Return(errors.New("auth with too short fields error")).
+					Return(nil).
+					Once()
+
+				s.uowFactory.EXPECT().
+					Begin(mock.Anything).
+					Return(nil, errors.New("begin tx error")).
 					Once()
 			},
-			wantErr: errors.New("auth with too short fields error"),
+			errs.InternalError,
 		},
 		{
-			name:  "auth with too long fields",
-			value: &dto.UserRequest{Username: "too_long_field", Password: "too_long_password"},
-			setupMock: func() {
+			"Check user existing - user not found error",
+			func() {
+				s.expectBeginTx()
+				s.expectRollbackTx()
 				s.valid.EXPECT().
 					Validate(mock.Anything).
-					Return(errors.New("auth with too long fields error")).
+					Return(nil).
+					Once()
+
+				s.userRepo.EXPECT().
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(nil, nil).
 					Once()
 			},
-			wantErr: errors.New("auth with too long fields error"),
+			errs.UserNotFound,
+		},
+		{
+			"Check user existing - internal error",
+			func() {
+				s.expectBeginTx()
+				s.expectRollbackTx()
+				s.valid.EXPECT().
+					Validate(mock.Anything).
+					Return(nil).
+					Once()
+
+				s.userRepo.EXPECT().
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(nil, errors.New("db error")).
+					Once()
+			},
+			errs.InternalError,
+		},
+		{
+			"Incorrect password",
+			func() {
+				s.expectBeginTx()
+				s.expectRollbackTx()
+				s.valid.EXPECT().
+					Validate(mock.Anything).
+					Return(nil).
+					Once()
+
+				s.userRepo.EXPECT().
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(&domain.User{}, nil).
+					Once()
+
+				s.security.EXPECT().
+					CompareHashAndPassword(mock.Anything, mock.Anything).
+					Return(false).
+					Once()
+			},
+			errs.Unauthorized,
+		},
+		{
+			"Revoke key - internal error",
+			func() {
+				s.expectBeginTx()
+				s.expectRollbackTx()
+				s.valid.EXPECT().
+					Validate(mock.Anything).
+					Return(nil).
+					Once()
+
+				s.userRepo.EXPECT().
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(&domain.User{}, nil).
+					Once()
+
+				s.security.EXPECT().
+					CompareHashAndPassword(mock.Anything, mock.Anything).
+					Return(true).
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					RevokeKeyByUserId(mock.Anything, mock.Anything).
+					Return(errors.New("db error")).
+					Once()
+			},
+			errs.InternalError,
+		},
+		{
+			"Generate API Key error",
+			func() {
+				s.expectBeginTx()
+				s.expectRollbackTx()
+				s.valid.EXPECT().
+					Validate(mock.Anything).
+					Return(nil).
+					Once()
+
+				s.userRepo.EXPECT().
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(&domain.User{}, nil).
+					Once()
+
+				s.security.EXPECT().
+					CompareHashAndPassword(mock.Anything, mock.Anything).
+					Return(true).
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					RevokeKeyByUserId(mock.Anything, mock.Anything).
+					Return(nil).
+					Once()
+
+				s.security.EXPECT().
+					GenerateAPIKey(mock.Anything).
+					Return("", "", errors.New("API key error")).
+					Once()
+			},
+			errs.InternalError,
+		},
+		{
+			"Create API Key error",
+			func() {
+				s.expectBeginTx()
+				s.expectRollbackTx()
+				s.valid.EXPECT().
+					Validate(mock.Anything).
+					Return(nil).
+					Once()
+
+				s.userRepo.EXPECT().
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(&domain.User{}, nil).
+					Once()
+
+				s.security.EXPECT().
+					CompareHashAndPassword(mock.Anything, mock.Anything).
+					Return(true).
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					RevokeKeyByUserId(mock.Anything, mock.Anything).
+					Return(nil).
+					Once()
+
+				s.security.EXPECT().
+					GenerateAPIKey(mock.Anything).
+					Return("pb_test", "pb_test_test_key", nil).
+					Once()
+
+				s.security.EXPECT().
+					HashAPIKey(mock.Anything).
+					Return("key_hash").
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					Create(mock.Anything, mock.Anything, mock.Anything).
+					Return(nil, errors.New("db error")).
+					Once()
+			},
+			errs.InternalError,
+		},
+		{
+			"Create API Key error",
+			func() {
+				s.expectBeginTx()
+				s.expectRollbackTx()
+				s.valid.EXPECT().
+					Validate(mock.Anything).
+					Return(nil).
+					Once()
+
+				s.userRepo.EXPECT().
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(&domain.User{}, nil).
+					Once()
+
+				s.security.EXPECT().
+					CompareHashAndPassword(mock.Anything, mock.Anything).
+					Return(true).
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					RevokeKeyByUserId(mock.Anything, mock.Anything).
+					Return(nil).
+					Once()
+
+				s.security.EXPECT().
+					GenerateAPIKey(mock.Anything).
+					Return("pb_test", "pb_test_test_key", nil).
+					Once()
+
+				s.security.EXPECT().
+					HashAPIKey(mock.Anything).
+					Return("key_hash").
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					Create(mock.Anything, mock.Anything, mock.Anything).
+					Return(nil, errors.New("db error")).
+					Once()
+			},
+			errs.InternalError,
+		},
+		{
+			"Commit tx error",
+			func() {
+				s.expectBeginTx()
+				s.expectRollbackTx()
+				s.valid.EXPECT().
+					Validate(mock.Anything).
+					Return(nil).
+					Once()
+
+				s.userRepo.EXPECT().
+					GetByUsername(mock.Anything, mock.Anything).
+					Return(&domain.User{}, nil).
+					Once()
+
+				s.security.EXPECT().
+					CompareHashAndPassword(mock.Anything, mock.Anything).
+					Return(true).
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					RevokeKeyByUserId(mock.Anything, mock.Anything).
+					Return(nil).
+					Once()
+
+				s.security.EXPECT().
+					GenerateAPIKey(mock.Anything).
+					Return("pb_test", "pb_test_test_key", nil).
+					Once()
+
+				s.security.EXPECT().
+					HashAPIKey(mock.Anything).
+					Return("key_hash").
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					Create(mock.Anything, mock.Anything, mock.Anything).
+					Return(&domain.APIKey{}, nil).
+					Once()
+
+				s.txUow.EXPECT().
+					Commit(mock.Anything).
+					Return(errors.New("commit error")).
+					Once()
+			},
+			errs.InternalError,
 		},
 	}
 
 	for _, tc := range cases {
 		s.T().Run(tc.name, func(t *testing.T) {
 			s.SetupTest()
-			tc.setupMock()
+			tc.setupMocks()
 
-			result, err := s.useCase.Registration(context.Background(), tc.value)
+			key, err := s.useCase.Login(context.Background(), &dto.UserRequest{})
 
-			s.Nil(result)
-			s.NotNil(err)
-			s.Equal(err, tc.wantErr)
+			s.Error(err)
+			s.Nil(key)
+			s.ErrorIs(err, tc.wantError)
 		})
 	}
 }

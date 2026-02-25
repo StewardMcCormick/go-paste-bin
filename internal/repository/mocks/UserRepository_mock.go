@@ -106,23 +106,25 @@ func (_c *MockUserRepository_Create_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
-// Exists provides a mock function for the type MockUserRepository
-func (_mock *MockUserRepository) Exists(ctx context.Context, username string) (bool, error) {
+// GetByUsername provides a mock function for the type MockUserRepository
+func (_mock *MockUserRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
 	ret := _mock.Called(ctx, username)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Exists")
+		panic("no return value specified for GetByUsername")
 	}
 
-	var r0 bool
+	var r0 *domain.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*domain.User, error)); ok {
 		return returnFunc(ctx, username)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *domain.User); ok {
 		r0 = returnFunc(ctx, username)
 	} else {
-		r0 = ret.Get(0).(bool)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.User)
+		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = returnFunc(ctx, username)
@@ -132,19 +134,19 @@ func (_mock *MockUserRepository) Exists(ctx context.Context, username string) (b
 	return r0, r1
 }
 
-// MockUserRepository_Exists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Exists'
-type MockUserRepository_Exists_Call struct {
+// MockUserRepository_GetByUsername_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByUsername'
+type MockUserRepository_GetByUsername_Call struct {
 	*mock.Call
 }
 
-// Exists is a helper method to define mock.On call
+// GetByUsername is a helper method to define mock.On call
 //   - ctx context.Context
 //   - username string
-func (_e *MockUserRepository_Expecter) Exists(ctx interface{}, username interface{}) *MockUserRepository_Exists_Call {
-	return &MockUserRepository_Exists_Call{Call: _e.mock.On("Exists", ctx, username)}
+func (_e *MockUserRepository_Expecter) GetByUsername(ctx interface{}, username interface{}) *MockUserRepository_GetByUsername_Call {
+	return &MockUserRepository_GetByUsername_Call{Call: _e.mock.On("GetByUsername", ctx, username)}
 }
 
-func (_c *MockUserRepository_Exists_Call) Run(run func(ctx context.Context, username string)) *MockUserRepository_Exists_Call {
+func (_c *MockUserRepository_GetByUsername_Call) Run(run func(ctx context.Context, username string)) *MockUserRepository_GetByUsername_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -162,12 +164,12 @@ func (_c *MockUserRepository_Exists_Call) Run(run func(ctx context.Context, user
 	return _c
 }
 
-func (_c *MockUserRepository_Exists_Call) Return(b bool, err error) *MockUserRepository_Exists_Call {
-	_c.Call.Return(b, err)
+func (_c *MockUserRepository_GetByUsername_Call) Return(user *domain.User, err error) *MockUserRepository_GetByUsername_Call {
+	_c.Call.Return(user, err)
 	return _c
 }
 
-func (_c *MockUserRepository_Exists_Call) RunAndReturn(run func(ctx context.Context, username string) (bool, error)) *MockUserRepository_Exists_Call {
+func (_c *MockUserRepository_GetByUsername_Call) RunAndReturn(run func(ctx context.Context, username string) (*domain.User, error)) *MockUserRepository_GetByUsername_Call {
 	_c.Call.Return(run)
 	return _c
 }

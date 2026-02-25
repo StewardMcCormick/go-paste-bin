@@ -2,13 +2,14 @@ package validation
 
 import (
 	"errors"
+	"net/http"
+	"strings"
+	"testing"
+
 	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
 	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"strings"
-	"testing"
 )
 
 func TestUserValidator_Validate(t *testing.T) {
@@ -20,7 +21,7 @@ func TestUserValidator_Validate(t *testing.T) {
 		expected *errs.ValidationError
 	}{
 		{
-			name:     "Correct auth",
+			name:     "Correct user",
 			value:    &dto.UserRequest{Username: "Correct_User", Password: "password"},
 			expected: nil,
 		},

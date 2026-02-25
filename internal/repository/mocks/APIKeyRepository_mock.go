@@ -112,53 +112,44 @@ func (_c *MockAPIKeyRepository_Create_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
-// Exists provides a mock function for the type MockAPIKeyRepository
-func (_mock *MockAPIKeyRepository) Exists(ctx context.Context, keyHash string) (bool, error) {
-	ret := _mock.Called(ctx, keyHash)
+// RevokeKeyByUserId provides a mock function for the type MockAPIKeyRepository
+func (_mock *MockAPIKeyRepository) RevokeKeyByUserId(ctx context.Context, userId int64) error {
+	ret := _mock.Called(ctx, userId)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Exists")
+		panic("no return value specified for RevokeKeyByUserId")
 	}
 
-	var r0 bool
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
-		return returnFunc(ctx, keyHash)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = returnFunc(ctx, keyHash)
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64) error); ok {
+		r0 = returnFunc(ctx, userId)
 	} else {
-		r0 = ret.Get(0).(bool)
+		r0 = ret.Error(0)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, keyHash)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
+	return r0
 }
 
-// MockAPIKeyRepository_Exists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Exists'
-type MockAPIKeyRepository_Exists_Call struct {
+// MockAPIKeyRepository_RevokeKeyByUserId_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RevokeKeyByUserId'
+type MockAPIKeyRepository_RevokeKeyByUserId_Call struct {
 	*mock.Call
 }
 
-// Exists is a helper method to define mock.On call
+// RevokeKeyByUserId is a helper method to define mock.On call
 //   - ctx context.Context
-//   - keyHash string
-func (_e *MockAPIKeyRepository_Expecter) Exists(ctx interface{}, keyHash interface{}) *MockAPIKeyRepository_Exists_Call {
-	return &MockAPIKeyRepository_Exists_Call{Call: _e.mock.On("Exists", ctx, keyHash)}
+//   - userId int64
+func (_e *MockAPIKeyRepository_Expecter) RevokeKeyByUserId(ctx interface{}, userId interface{}) *MockAPIKeyRepository_RevokeKeyByUserId_Call {
+	return &MockAPIKeyRepository_RevokeKeyByUserId_Call{Call: _e.mock.On("RevokeKeyByUserId", ctx, userId)}
 }
 
-func (_c *MockAPIKeyRepository_Exists_Call) Run(run func(ctx context.Context, keyHash string)) *MockAPIKeyRepository_Exists_Call {
+func (_c *MockAPIKeyRepository_RevokeKeyByUserId_Call) Run(run func(ctx context.Context, userId int64)) *MockAPIKeyRepository_RevokeKeyByUserId_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 int64
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(int64)
 		}
 		run(
 			arg0,
@@ -168,12 +159,12 @@ func (_c *MockAPIKeyRepository_Exists_Call) Run(run func(ctx context.Context, ke
 	return _c
 }
 
-func (_c *MockAPIKeyRepository_Exists_Call) Return(b bool, err error) *MockAPIKeyRepository_Exists_Call {
-	_c.Call.Return(b, err)
+func (_c *MockAPIKeyRepository_RevokeKeyByUserId_Call) Return(err error) *MockAPIKeyRepository_RevokeKeyByUserId_Call {
+	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockAPIKeyRepository_Exists_Call) RunAndReturn(run func(ctx context.Context, keyHash string) (bool, error)) *MockAPIKeyRepository_Exists_Call {
+func (_c *MockAPIKeyRepository_RevokeKeyByUserId_Call) RunAndReturn(run func(ctx context.Context, userId int64) error) *MockAPIKeyRepository_RevokeKeyByUserId_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -63,7 +63,7 @@ func (uc *UseCase) Registration(ctx context.Context, user *dto.UserRequest) (*dt
 
 	tx, err := uc.uow.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w - tx beggining error", err)
+		return nil, fmt.Errorf("%w - tx beggining error", errs.InternalError)
 	}
 	defer tx.Rollback(ctx)
 
@@ -129,6 +129,9 @@ func (uc *UseCase) Registration(ctx context.Context, user *dto.UserRequest) (*dt
 
 func (uc *UseCase) Login(ctx context.Context, user *dto.UserRequest) (*dto.APIKeyResponse, error) {
 	log := appctx.GetLogger(ctx)
+	if err := uc.valid.Validate(user); err != nil {
+		return nil, err
+	}
 
 	tx, err := uc.uow.Begin(ctx)
 	if err != nil {

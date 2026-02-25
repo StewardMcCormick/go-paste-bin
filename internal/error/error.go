@@ -6,8 +6,7 @@ import (
 
 var (
 	InternalError    = errors.New("internal error")
-	TooManyRequest   = errors.New("too many request")
-	Unauthorized     = errors.New("unforbidden")
+	Unauthorized     = errors.New("unauthorized")
 	PageNotFound     = errors.New("page not found")
 	MethodNotAllowed = errors.New("method not allowed")
 

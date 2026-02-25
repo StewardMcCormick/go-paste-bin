@@ -34,8 +34,6 @@ func main() {
 	AppRun(context.Background(), cfg)
 }
 
-// logging in -> ... TODO
-
 func AppRun(ctx context.Context, cfg *config.Config) {
 	logger, err := logging.NewLogger(cfg.Logger, cfg.App.Env, cfg.App.Name, cfg.App.Version)
 	if err != nil {
