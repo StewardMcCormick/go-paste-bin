@@ -778,3 +778,107 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 		})
 	}
 }
+
+func (s *UseCaseTestSuite) Test_Authenticate_Success() {
+	var expectedId int64 = 1
+	s.security.EXPECT().
+		HashAPIKey(mock.Anything).
+		Return("hash").
+		Once()
+
+	s.uowFactory.EXPECT().
+		Exec(mock.Anything).
+		Return(s.noTxUow).
+		Once()
+
+	s.apiKeyRepo.EXPECT().
+		GetByKeyHash(mock.Anything, mock.Anything).
+		Return(expectedId, &domain.APIKey{ExpiresAt: time.Now().Add(time.Hour)}, nil).
+		Once()
+
+	userId, err := s.useCase.Authenticate(context.Background(), "key")
+	s.NoError(err)
+	s.Equal(expectedId, userId)
+}
+
+func (s *UseCaseTestSuite) Test_Authenticate_Error() {
+	cases := []struct {
+		name       string
+		setupMocks func()
+		wantErr    error
+	}{
+		{
+			"DB error - internal error",
+			func() {
+				s.security.EXPECT().
+					HashAPIKey(mock.Anything).
+					Return("hash").
+					Once()
+
+				s.uowFactory.EXPECT().
+					Exec(mock.Anything).
+					Return(s.noTxUow).
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					GetByKeyHash(mock.Anything, mock.Anything).
+					Return(0, nil, errors.New("db error")).
+					Once()
+			},
+			errs.InternalError,
+		},
+		{
+			"Key not found",
+			func() {
+				s.security.EXPECT().
+					HashAPIKey(mock.Anything).
+					Return("hash").
+					Once()
+
+				s.uowFactory.EXPECT().
+					Exec(mock.Anything).
+					Return(s.noTxUow).
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					GetByKeyHash(mock.Anything, mock.Anything).
+					Return(0, nil, nil).
+					Once()
+			},
+			errs.Unauthorized,
+		},
+		{
+			"Key expired",
+			func() {
+				s.security.EXPECT().
+					HashAPIKey(mock.Anything).
+					Return("hash").
+					Once()
+
+				s.uowFactory.EXPECT().
+					Exec(mock.Anything).
+					Return(s.noTxUow).
+					Once()
+
+				s.apiKeyRepo.EXPECT().
+					GetByKeyHash(mock.Anything, mock.Anything).
+					Return(0, &domain.APIKey{ExpiresAt: time.Now().Add(-1 * time.Hour)}, nil).
+					Once()
+			},
+			errs.Unauthorized,
+		},
+	}
+
+	for _, tc := range cases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			s.SetupTest()
+			tc.setupMocks()
+
+			id, err := s.useCase.Authenticate(context.Background(), "key")
+
+			s.Equal(int64(0), id)
+			s.Error(err)
+			s.ErrorIs(err, tc.wantErr)
+		})
+	}
+}
