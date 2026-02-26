@@ -3,20 +3,23 @@ package handler
 import (
 	"net/http"
 
+	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
 	mid "github.com/StewardMcCormick/Paste_Bin/internal/handler/middleware"
 	"github.com/go-chi/chi/v5"
 )
 
 type UserHandler interface {
-	NotFound(w http.ResponseWriter, r *http.Request)
-	MethodNotAllowed(w http.ResponseWriter, r *http.Request)
 	Registration(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
 	Hello(w http.ResponseWriter, r *http.Request)
 }
 
+type PasteHandler interface {
+}
+
 func NewRouter(
 	userHandler UserHandler,
+	pasteHandler PasteHandler,
 	logMid mid.Logging,
 	recovererMid mid.Recoverer,
 	envMid mid.Environmental,
@@ -30,8 +33,13 @@ func NewRouter(
 	r.Use(envMid.Handler)
 	r.Use(validMid.Handler)
 
-	r.NotFound(userHandler.NotFound)
-	r.MethodNotAllowed(userHandler.MethodNotAllowed)
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		errs.SendAppError(r.Context(), w, http.StatusNotFound, errs.PageNotFound)
+	})
+
+	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+		errs.SendAppError(r.Context(), w, http.StatusMethodNotAllowed, errs.MethodNotAllowed)
+	})
 
 	r.Post("/registration", userHandler.Registration)
 	r.Post("/login", userHandler.Login)

@@ -13,9 +13,11 @@ import (
 	"github.com/StewardMcCormick/Paste_Bin/internal/adapter/postgres"
 	"github.com/StewardMcCormick/Paste_Bin/internal/handler"
 	"github.com/StewardMcCormick/Paste_Bin/internal/handler/middleware"
+	pasteH "github.com/StewardMcCormick/Paste_Bin/internal/handler/paste"
 	userH "github.com/StewardMcCormick/Paste_Bin/internal/handler/user"
 	"github.com/StewardMcCormick/Paste_Bin/internal/repository"
 	userUseCase "github.com/StewardMcCormick/Paste_Bin/internal/usecase/auth"
+	pasteUseCase "github.com/StewardMcCormick/Paste_Bin/internal/usecase/paste"
 	"github.com/StewardMcCormick/Paste_Bin/internal/util/security"
 	"github.com/StewardMcCormick/Paste_Bin/internal/validation"
 	"github.com/StewardMcCormick/Paste_Bin/pkg/httpserver"
@@ -63,6 +65,7 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 	securityUtil := security.NewUtil()
 	valid := validation.NewUserValidator(validator.New(validator.WithRequiredStructEnabled()))
 	authUc := userUseCase.NewUseCase(uowFactory, securityUtil, valid, cfg.Auth)
+	pasteUc := pasteUseCase.NewUseCase(uowFactory)
 
 	logger.Info("[START] Server initialization...")
 
@@ -73,8 +76,10 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 	authMid := middleware.NewAuth(authUc)
 
 	userHandler := userH.NewHandler(authUc)
+	pasteHandler := pasteH.NewHandlers(pasteUc)
 	router := handler.NewRouter(
 		userHandler,
+		pasteHandler,
 		logMid,
 		recoverMid,
 		envMid,

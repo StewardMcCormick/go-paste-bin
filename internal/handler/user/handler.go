@@ -1,14 +1,21 @@
 package user
 
 import (
-	"github.com/StewardMcCormick/Paste_Bin/internal/usecase/auth"
+	"context"
+
+	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
 )
 
-type httpHandlers struct {
-	authUseCase *auth.UseCase
+type AuthUseCase interface {
+	Registration(ctx context.Context, user *dto.UserRequest) (*dto.UserResponse, error)
+	Login(ctx context.Context, user *dto.UserRequest) (*dto.APIKeyResponse, error)
 }
 
-func NewHandler(authUseCase *auth.UseCase) *httpHandlers {
+type httpHandlers struct {
+	authUseCase AuthUseCase
+}
+
+func NewHandler(authUseCase AuthUseCase) *httpHandlers {
 	return &httpHandlers{
 		authUseCase: authUseCase,
 	}
