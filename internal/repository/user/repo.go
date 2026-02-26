@@ -1,4 +1,4 @@
-package repository
+package user
 
 import (
 	"context"
@@ -8,17 +8,17 @@ import (
 	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 )
 
-type userRepository struct {
-	pool postgres.DBTX
+type Repository struct {
+	Pool postgres.DBTX
 }
 
-func (r *userRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *Repository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	log := appctx.GetLogger(ctx)
 	resultUser := &domain.User{}
 
 	userQuery := `INSERT INTO users(username, password_hash, created_at) 
     				VALUES ($1, $2, $3) RETURNING *`
-	err := r.pool.QueryRow(ctx, userQuery, user.Username, user.Password, user.CreatedAt).
+	err := r.Pool.QueryRow(ctx, userQuery, user.Username, user.Password, user.CreatedAt).
 		Scan(&resultUser.Id, &resultUser.Username, &resultUser.Password, &resultUser.CreatedAt)
 	if err != nil {
 		log.Error(err.Error())
@@ -28,11 +28,11 @@ func (r *userRepository) Create(ctx context.Context, user *domain.User) (*domain
 	return resultUser, nil
 }
 
-func (r *userRepository) Exists(ctx context.Context, username string) (bool, error) {
+func (r *Repository) Exists(ctx context.Context, username string) (bool, error) {
 	log := appctx.GetLogger(ctx)
 
 	query := `SELECT * FROM users WHERE username = $1`
-	rows, err := r.pool.Query(ctx, query, username)
+	rows, err := r.Pool.Query(ctx, query, username)
 	defer rows.Close()
 
 	if err != nil {
@@ -47,11 +47,11 @@ func (r *userRepository) Exists(ctx context.Context, username string) (bool, err
 	return false, nil
 }
 
-func (r *userRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
+func (r *Repository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
 	log := appctx.GetLogger(ctx)
 
 	query := `SELECT id, username, password_hash, created_at FROM users WHERE username = $1`
-	rows, err := r.pool.Query(ctx, query, username)
+	rows, err := r.Pool.Query(ctx, query, username)
 	defer rows.Close()
 
 	if err != nil {

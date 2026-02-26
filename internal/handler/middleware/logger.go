@@ -1,12 +1,13 @@
 package middleware
 
 import (
+	"net/http"
+	"time"
+
 	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 	httputil "github.com/StewardMcCormick/Paste_Bin/internal/util/http_util"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"net/http"
-	"time"
 )
 
 type Logging struct {

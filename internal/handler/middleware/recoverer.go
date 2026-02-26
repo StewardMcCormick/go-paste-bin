@@ -2,9 +2,10 @@ package middleware
 
 import (
 	"fmt"
+	"net/http"
+
 	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 type Recoverer struct {
@@ -19,7 +20,7 @@ func (m *Recoverer) Handler(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				logger := r.Context().Value(appctx.LoggerKey).(*zap.Logger)
-				logger.Error(fmt.Sprintf("[ERROR] %v", fmt.Sprint(err)))
+				logger.Error(fmt.Sprintf("[PANIC] %v", fmt.Sprint(err)))
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()

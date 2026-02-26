@@ -1,9 +1,10 @@
 package middleware
 
 import (
+	"net/http"
+
 	"github.com/StewardMcCormick/Paste_Bin/config/cfg_util"
 	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
-	"net/http"
 )
 
 type Environmental struct {
