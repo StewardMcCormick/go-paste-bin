@@ -2,6 +2,7 @@ package paste
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -17,6 +18,7 @@ type Config struct {
 
 type Repository interface {
 	Create(context.Context, *domain.Paste) (*domain.Paste, error)
+	GetByHash(ctx context.Context, hash string) (*domain.Paste, error)
 }
 
 type Validator interface {
@@ -90,6 +92,32 @@ func (uc *UseCase) Create(ctx context.Context, request *dto.PasteRequest) (*dto.
 	if err != nil {
 		log.Error(fmt.Sprintf("%v - Paste saving error", err))
 		return nil, fmt.Errorf("%w - Paste saving error", errs.InternalError)
+	}
+
+	return paste.ToResponse(), nil
+}
+
+func (uc *UseCase) GetByHash(ctx context.Context, hash string) (*dto.PasteResponse, error) {
+	log := appctx.GetLogger(ctx)
+
+	paste, err := uc.repo.GetByHash(ctx, hash)
+	if err != nil {
+		if errors.Is(err, errs.PasteNotFound) {
+			return nil, err
+		}
+		log.Error(fmt.Sprintf("%v - get paste error", err))
+		return nil, fmt.Errorf("%w - get paste error", errs.InternalError)
+	}
+
+	userId, err := appctx.GetUserId(ctx)
+	if err != nil {
+		log.Error(fmt.Sprintf("%v - get user_id from ctx error", err))
+		return nil, fmt.Errorf("%w - get user_id from ctx error", errs.InternalError)
+	}
+
+	if paste.Privacy == domain.PrivatePolicy && userId != paste.UserId {
+		log.Debug(fmt.Sprintf("get paste Forbidden: from - %d, to paste with user_id - %d", userId, paste.UserId))
+		return nil, errs.Forbidden
 	}
 
 	return paste.ToResponse(), nil

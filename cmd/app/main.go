@@ -63,7 +63,7 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 	}
 	logger.Info("[START] DataBase migrations executing completed")
 
-	uowFactory := repository.NewUWFactory(ctx, pool)
+	uowFactory := repository.NewUWFactory(pool)
 	pasteRepo := paste.NewRepository(pool)
 	securityUtil := security.NewUtil()
 

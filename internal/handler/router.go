@@ -16,6 +16,7 @@ type UserHandler interface {
 
 type PasteHandler interface {
 	Create(w http.ResponseWriter, r *http.Request)
+	GetPaste(w http.ResponseWriter, r *http.Request)
 }
 
 func NewRouter(
@@ -28,7 +29,7 @@ func NewRouter(
 	authMid mid.Auth,
 ) http.Handler {
 	r := chi.NewRouter()
-	
+
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		errs.SendAppError(r.Context(), w, http.StatusNotFound, errs.PageNotFound)
 	})
@@ -47,10 +48,12 @@ func NewRouter(
 
 	r.Group(func(r chi.Router) {
 		r.Use(authMid.Handler)
+
 		r.Get("/hello", userHandler.Hello)
 
 		r.Route("/api/v1/paste", func(r chi.Router) {
 			r.Post("/", pasteHandler.Create)
+			r.Get("/{pasteHash}", pasteHandler.GetPaste)
 		})
 	})
 

@@ -10,7 +10,7 @@ type pgxUnitOfWorkFactory struct {
 	pool *pgxpool.Pool
 }
 
-func NewUWFactory(ctx context.Context, pool *pgxpool.Pool) *pgxUnitOfWorkFactory {
+func NewUWFactory(pool *pgxpool.Pool) *pgxUnitOfWorkFactory {
 	return &pgxUnitOfWorkFactory{pool: pool}
 }
 

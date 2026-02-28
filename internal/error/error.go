@@ -7,6 +7,7 @@ import (
 var (
 	InternalError          = errors.New("internal error")
 	Unauthorized           = errors.New("unauthorized")
+	Forbidden              = errors.New("forbidden")
 	PageNotFound           = errors.New("page not found")
 	MethodNotAllowed       = errors.New("method not allowed")
 	ValidationProcessError = errors.New("validation error")
@@ -15,6 +16,9 @@ var (
 	UserAlreadyExists = errors.New("user already exists")
 	UserNotFound      = errors.New("user not found")
 	APIKeyNotFound    = errors.New("API key not found")
+
+	// Paste Domain error
+	PasteNotFound = errors.New("paste not found")
 )
 
 type BaseError struct {
