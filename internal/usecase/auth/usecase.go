@@ -22,7 +22,7 @@ type UnitOfWorkFactory interface {
 	Begin(ctx context.Context) (repository.TxUnitOfWork, error)
 }
 
-type SecurityUtil interface {
+type Security interface {
 	HashPassword(password string) (string, error)
 	HashAPIKey(key string) string
 	GenerateAPIKey(ctx context.Context) (keyPrefix string, key string, err error)
@@ -41,12 +41,12 @@ type GeneratedAPIKey struct {
 
 type UseCase struct {
 	uow          UnitOfWorkFactory
-	securityUtil SecurityUtil
+	securityUtil Security
 	valid        Validator
 	cfg          Config
 }
 
-func NewUseCase(uow UnitOfWorkFactory, securityUtil SecurityUtil, valid Validator, cfg Config) *UseCase {
+func NewUseCase(uow UnitOfWorkFactory, securityUtil Security, valid Validator, cfg Config) *UseCase {
 	return &UseCase{
 		uow:          uow,
 		securityUtil: securityUtil,
@@ -58,6 +58,7 @@ func NewUseCase(uow UnitOfWorkFactory, securityUtil SecurityUtil, valid Validato
 func (uc *UseCase) Registration(ctx context.Context, user *dto.UserRequest) (*dto.UserResponse, error) {
 	log := appctx.GetLogger(ctx)
 	if err := uc.valid.Validate(user); err != nil {
+		log.Debug(fmt.Sprintf("validation error - %v", err))
 		return nil, err
 	}
 

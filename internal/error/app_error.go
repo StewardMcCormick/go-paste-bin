@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 	"net/http"
+
+	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 )
 
 type AppError interface {

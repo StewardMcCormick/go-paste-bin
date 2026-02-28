@@ -5,16 +5,16 @@ import (
 )
 
 var (
-	InternalError    = errors.New("internal error")
-	Unauthorized     = errors.New("unauthorized")
-	PageNotFound     = errors.New("page not found")
-	MethodNotAllowed = errors.New("method not allowed")
+	InternalError          = errors.New("internal error")
+	Unauthorized           = errors.New("unauthorized")
+	PageNotFound           = errors.New("page not found")
+	MethodNotAllowed       = errors.New("method not allowed")
+	ValidationProcessError = errors.New("validation error")
 
-	// Domain error
-	UserAlreadyExists   = errors.New("user already exists")
-	UserValidationError = errors.New("validation error")
-	UserNotFound        = errors.New("user not found")
-	APIKeyNotFound      = errors.New("API key not found")
+	// User Domain error
+	UserAlreadyExists = errors.New("user already exists")
+	UserNotFound      = errors.New("user not found")
+	APIKeyNotFound    = errors.New("API key not found")
 )
 
 type BaseError struct {

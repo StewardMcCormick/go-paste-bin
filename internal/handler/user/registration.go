@@ -29,5 +29,6 @@ func (h *httpHandlers) Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	render.JSON(w, user)
 }

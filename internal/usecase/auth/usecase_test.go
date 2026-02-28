@@ -25,7 +25,7 @@ type UseCaseTestSuite struct {
 	txUow      *repoMocks.MockTxUnitOfWork
 	apiKeyRepo *repoMocks.MockAPIKeyRepository
 	userRepo   *repoMocks.MockUserRepository
-	security   *ucMocks.MockSecurityUtil
+	security   *ucMocks.MockSecurity
 	valid      *ucMocks.MockValidator
 	useCase    *UseCase
 }
@@ -41,7 +41,7 @@ func (s *UseCaseTestSuite) SetupTest() {
 	s.apiKeyRepo = repoMocks.NewMockAPIKeyRepository(s.T())
 	s.userRepo = repoMocks.NewMockUserRepository(s.T())
 
-	s.security = ucMocks.NewMockSecurityUtil(s.T())
+	s.security = ucMocks.NewMockSecurity(s.T())
 	s.valid = ucMocks.NewMockValidator(s.T())
 
 	s.useCase = NewUseCase(s.uowFactory, s.security,
@@ -177,10 +177,10 @@ func (s *UseCaseTestSuite) Test_Registration_Error() {
 			func() {
 				s.valid.EXPECT().
 					Validate(mock.Anything).
-					Return(errs.UserValidationError).
+					Return(errs.ValidationProcessError).
 					Once()
 			},
-			errs.UserValidationError,
+			errs.ValidationProcessError,
 		},
 		{
 			"Begin tx error",
@@ -497,10 +497,10 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 			func() {
 				s.valid.EXPECT().
 					Validate(mock.Anything).
-					Return(errs.UserValidationError).
+					Return(errs.ValidationProcessError).
 					Once()
 			},
-			errs.UserValidationError,
+			errs.ValidationProcessError,
 		},
 		{
 			"Begin tx error",

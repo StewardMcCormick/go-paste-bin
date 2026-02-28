@@ -11,11 +11,13 @@ import (
 
 	"github.com/StewardMcCormick/Paste_Bin/config"
 	"github.com/StewardMcCormick/Paste_Bin/internal/adapter/postgres"
+	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
 	"github.com/StewardMcCormick/Paste_Bin/internal/handler"
 	"github.com/StewardMcCormick/Paste_Bin/internal/handler/middleware"
 	pasteH "github.com/StewardMcCormick/Paste_Bin/internal/handler/paste"
 	userH "github.com/StewardMcCormick/Paste_Bin/internal/handler/user"
 	"github.com/StewardMcCormick/Paste_Bin/internal/repository"
+	"github.com/StewardMcCormick/Paste_Bin/internal/repository/paste"
 	userUseCase "github.com/StewardMcCormick/Paste_Bin/internal/usecase/auth"
 	pasteUseCase "github.com/StewardMcCormick/Paste_Bin/internal/usecase/paste"
 	"github.com/StewardMcCormick/Paste_Bin/internal/util/security"
@@ -62,10 +64,14 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 	logger.Info("[START] DataBase migrations executing completed")
 
 	uowFactory := repository.NewUWFactory(ctx, pool)
+	pasteRepo := paste.NewRepository(pool)
 	securityUtil := security.NewUtil()
-	valid := validation.NewUserValidator(validator.New(validator.WithRequiredStructEnabled()))
-	authUc := userUseCase.NewUseCase(uowFactory, securityUtil, valid, cfg.Auth)
-	pasteUc := pasteUseCase.NewUseCase(uowFactory)
+
+	userValid := validation.NewValidator[*dto.UserRequest](validator.New(validator.WithRequiredStructEnabled()))
+	pasteValid := validation.NewValidator[*dto.PasteRequest](validator.New(validator.WithRequiredStructEnabled()))
+
+	authUc := userUseCase.NewUseCase(uowFactory, securityUtil, userValid, cfg.Auth)
+	pasteUc := pasteUseCase.NewUseCase(cfg.Paste, pasteRepo, pasteValid, securityUtil)
 
 	logger.Info("[START] Server initialization...")
 

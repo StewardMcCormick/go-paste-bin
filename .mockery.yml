@@ -9,7 +9,7 @@ template: testify
 packages:
   github.com/StewardMcCormick/Paste_Bin/internal/usecase/auth:
     interfaces:
-      SecurityUtil:
+      Security:
       Validator:
       UnitOfWorkFactory:
   github.com/StewardMcCormick/Paste_Bin/internal/repository:
@@ -18,3 +18,9 @@ packages:
       TxUnitOfWork:
       UserRepository:
       APIKeyRepository:
+
+  github.com/StewardMcCormick/Paste_Bin/internal/usecase/paste:
+    interfaces:
+      Repository:
+      Validator:
+      Security:

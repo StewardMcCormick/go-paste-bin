@@ -65,3 +65,12 @@ func (s *Util) CompareHashAndPassword(hash string, pass string) bool {
 
 	return true
 }
+
+func (s *Util) GeneratePasteHash() (string, error) {
+	hash, err := gonanoid.New(20)
+	if err != nil {
+		return "", err
+	}
+
+	return hash, nil
+}

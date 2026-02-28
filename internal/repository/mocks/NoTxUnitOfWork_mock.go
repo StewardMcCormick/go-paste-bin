@@ -82,52 +82,6 @@ func (_c *MockNoTxUnitOfWork_APIKeyRepository_Call) RunAndReturn(run func() repo
 	return _c
 }
 
-// PasteRepository provides a mock function for the type MockNoTxUnitOfWork
-func (_mock *MockNoTxUnitOfWork) PasteRepository() repository.PasteRepository {
-	ret := _mock.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for PasteRepository")
-	}
-
-	var r0 repository.PasteRepository
-	if returnFunc, ok := ret.Get(0).(func() repository.PasteRepository); ok {
-		r0 = returnFunc()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(repository.PasteRepository)
-		}
-	}
-	return r0
-}
-
-// MockNoTxUnitOfWork_PasteRepository_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PasteRepository'
-type MockNoTxUnitOfWork_PasteRepository_Call struct {
-	*mock.Call
-}
-
-// PasteRepository is a helper method to define mock.On call
-func (_e *MockNoTxUnitOfWork_Expecter) PasteRepository() *MockNoTxUnitOfWork_PasteRepository_Call {
-	return &MockNoTxUnitOfWork_PasteRepository_Call{Call: _e.mock.On("PasteRepository")}
-}
-
-func (_c *MockNoTxUnitOfWork_PasteRepository_Call) Run(run func()) *MockNoTxUnitOfWork_PasteRepository_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockNoTxUnitOfWork_PasteRepository_Call) Return(pasteRepository repository.PasteRepository) *MockNoTxUnitOfWork_PasteRepository_Call {
-	_c.Call.Return(pasteRepository)
-	return _c
-}
-
-func (_c *MockNoTxUnitOfWork_PasteRepository_Call) RunAndReturn(run func() repository.PasteRepository) *MockNoTxUnitOfWork_PasteRepository_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // UserRepository provides a mock function for the type MockNoTxUnitOfWork
 func (_mock *MockNoTxUnitOfWork) UserRepository() repository.UserRepository {
 	ret := _mock.Called()

@@ -4,6 +4,7 @@ import (
 	"github.com/StewardMcCormick/Paste_Bin/config/cfg_util"
 	"github.com/StewardMcCormick/Paste_Bin/internal/adapter/postgres"
 	"github.com/StewardMcCormick/Paste_Bin/internal/usecase/auth"
+	"github.com/StewardMcCormick/Paste_Bin/internal/usecase/paste"
 	"github.com/StewardMcCormick/Paste_Bin/pkg/httpserver"
 	"github.com/StewardMcCormick/Paste_Bin/pkg/logging"
 	"github.com/ilyakaznacheev/cleanenv"
@@ -22,6 +23,7 @@ type Config struct {
 	Logger   logging.Config
 	Postgres postgres.Config
 	Auth     auth.Config
+	Paste    paste.Config
 }
 
 func InitConfig() (*Config, error) {

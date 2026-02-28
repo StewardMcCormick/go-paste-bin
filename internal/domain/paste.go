@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
+)
 
 type PrivacyPolicy string
 type PasteContent string
@@ -21,4 +25,15 @@ type Paste struct {
 	CreatedAt    time.Time
 	ExpireAt     time.Time
 	Content      PasteContent
+}
+
+func (p *Paste) ToResponse() *dto.PasteResponse {
+	return &dto.PasteResponse{
+		Id:        p.Id,
+		Views:     p.Views,
+		Privacy:   string(p.Privacy),
+		CreatedAt: p.CreatedAt,
+		ExpireAt:  p.ExpireAt,
+		Content:   string(p.Content),
+	}
 }

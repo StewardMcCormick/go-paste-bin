@@ -5,7 +5,6 @@ import (
 
 	"github.com/StewardMcCormick/Paste_Bin/internal/domain"
 	"github.com/StewardMcCormick/Paste_Bin/internal/repository/api_key"
-	"github.com/StewardMcCormick/Paste_Bin/internal/repository/paste"
 	"github.com/StewardMcCormick/Paste_Bin/internal/repository/user"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,22 +21,17 @@ type APIKeyRepository interface {
 	GetByKeyHash(ctx context.Context, hash string) (userId int64, key *domain.APIKey, err error)
 }
 
-type PasteRepository interface {
-}
-
 type TxUnitOfWork interface {
 	Commit(ctx context.Context) error
 	Rollback(ctx context.Context)
 
 	UserRepository() UserRepository
 	APIKeyRepository() APIKeyRepository
-	PasteRepository() PasteRepository
 }
 
 type NoTxUnitOfWork interface {
 	UserRepository() UserRepository
 	APIKeyRepository() APIKeyRepository
-	PasteRepository() PasteRepository
 }
 
 type pgxUnitOfWorkNoTx struct {
@@ -50,10 +44,6 @@ func (uw *pgxUnitOfWorkNoTx) UserRepository() UserRepository {
 
 func (uw *pgxUnitOfWorkNoTx) APIKeyRepository() APIKeyRepository {
 	return &api_key.Repository{Pool: uw.pool}
-}
-
-func (uw *pgxUnitOfWorkNoTx) PasteRepository() PasteRepository {
-	return &paste.Repository{Pool: uw.pool}
 }
 
 type pgxUnitOfWorkTX struct {
@@ -74,8 +64,4 @@ func (uwt *pgxUnitOfWorkTX) UserRepository() UserRepository {
 
 func (uwt *pgxUnitOfWorkTX) APIKeyRepository() APIKeyRepository {
 	return &api_key.Repository{Pool: uwt.tx}
-}
-
-func (uwt *pgxUnitOfWorkTX) PasteRepository() PasteRepository {
-	return &paste.Repository{Pool: uwt.tx}
 }
