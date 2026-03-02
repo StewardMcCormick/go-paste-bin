@@ -21,7 +21,7 @@ func (h *httpHandlers) Registration(w http.ResponseWriter, r *http.Request) {
 			errs.SendAppError(r.Context(), w, http.StatusConflict, err)
 			return
 		} else if errors.As(err, &validator.ValidationErrors{}) {
-			errs.SendAppError(r.Context(), w, http.StatusBadRequest, err.(validator.ValidationErrors))
+			errs.SendAppError(r.Context(), w, http.StatusBadRequest, err)
 			return
 		}
 

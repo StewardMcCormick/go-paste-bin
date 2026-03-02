@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/StewardMcCormick/Paste_Bin/config/cfg_util"
 	"github.com/StewardMcCormick/Paste_Bin/internal/adapter/postgres"
+	"github.com/StewardMcCormick/Paste_Bin/internal/handler"
 	"github.com/StewardMcCormick/Paste_Bin/internal/usecase/auth"
 	"github.com/StewardMcCormick/Paste_Bin/internal/usecase/paste"
 	"github.com/StewardMcCormick/Paste_Bin/pkg/httpserver"
@@ -24,6 +25,7 @@ type Config struct {
 	Postgres postgres.Config
 	Auth     auth.Config
 	Paste    paste.Config
+	API      handler.Config
 }
 
 func InitConfig() (*Config, error) {

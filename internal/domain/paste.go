@@ -34,6 +34,7 @@ func (p *Paste) ToResponse() *dto.PasteResponse {
 		Privacy:   string(p.Privacy),
 		CreatedAt: p.CreatedAt,
 		ExpireAt:  p.ExpireAt,
+		Hash:      p.Hash,
 		Content:   string(p.Content),
 	}
 }

@@ -3,6 +3,9 @@ app:
   version: "v1.0.0"
   env: "dev"
 
+api:
+  base_url: "/api/v1"
+
 logger:
   level: "debug"
   outputs: [ "stdout" ]

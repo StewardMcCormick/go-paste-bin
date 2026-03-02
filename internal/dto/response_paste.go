@@ -9,4 +9,5 @@ type PasteResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 	ExpireAt  time.Time `json:"expire_at,omitempty"`
 	Content   string    `json:"content"`
+	Hash      string    `json:"-"`
 }
