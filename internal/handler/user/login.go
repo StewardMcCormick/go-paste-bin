@@ -26,6 +26,9 @@ func (h *httpHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		} else if errors.Is(err, errs.Unauthorized) {
 			errs.SendAppError(r.Context(), w, http.StatusUnauthorized, err)
 			return
+		} else if errors.As(err, &errs.ValidationError{}) {
+			errs.SendAppError(r.Context(), w, http.StatusBadRequest, err)
+			return
 		}
 
 		errs.SendAppError(r.Context(), w, http.StatusInternalServerError, err)

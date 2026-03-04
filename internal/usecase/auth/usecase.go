@@ -131,6 +131,7 @@ func (uc *UseCase) Registration(ctx context.Context, user *dto.UserRequest) (*dt
 func (uc *UseCase) Login(ctx context.Context, user *dto.UserRequest) (*dto.APIKeyResponse, error) {
 	log := appctx.GetLogger(ctx)
 	if err := uc.valid.Validate(user); err != nil {
+		log.Debug(fmt.Sprintf("%v - validation error", err))
 		return nil, err
 	}
 

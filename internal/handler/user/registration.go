@@ -8,19 +8,21 @@ import (
 	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
 	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
 	"github.com/StewardMcCormick/Paste_Bin/pkg/render"
-	"github.com/go-playground/validator/v10"
 )
 
 func (h *httpHandlers) Registration(w http.ResponseWriter, r *http.Request) {
 	var userRequest dto.UserRequest
-	json.NewDecoder(r.Body).Decode(&userRequest)
+	if err := json.NewDecoder(r.Body).Decode(&userRequest); err != nil {
+		errs.SendAppError(r.Context(), w, http.StatusBadRequest, err)
+		return
+	}
 
 	user, err := h.authUseCase.Registration(r.Context(), &userRequest)
 	if err != nil {
 		if errors.Is(err, errs.UserAlreadyExists) {
 			errs.SendAppError(r.Context(), w, http.StatusConflict, err)
 			return
-		} else if errors.As(err, &validator.ValidationErrors{}) {
+		} else if errors.As(err, &errs.ValidationError{}) {
 			errs.SendAppError(r.Context(), w, http.StatusBadRequest, err)
 			return
 		}

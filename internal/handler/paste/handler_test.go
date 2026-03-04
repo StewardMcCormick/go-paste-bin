@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -94,9 +95,17 @@ func (s *HandlerTestSuite) Test_Create_Error() {
 	cases := []struct {
 		name           string
 		setup          func()
-		value          *dto.PasteRequest
+		value          interface{}
 		expectedStatus int
 	}{
+		{
+			"Invalid JSON",
+			func() {
+
+			},
+			"{ invalid JSON }",
+			http.StatusBadRequest,
+		},
 		{
 			"Internal error",
 			func() {
@@ -265,6 +274,21 @@ func (s *HandlerTestSuite) Test_Get_Error() {
 						return hash == "hash"
 					})).
 					Return(nil, errs.InternalError)
+			},
+			&dto.GetPasteRequest{Password: "pass"},
+			http.StatusInternalServerError,
+		},
+		{
+			"Unknown Error",
+			func() {
+				s.useCase.EXPECT().
+					GetByHash(mock.Anything, mock.MatchedBy(func(req dto.GetPasteRequest) bool {
+						return req.Password == "pass"
+					},
+					), mock.MatchedBy(func(hash string) bool {
+						return hash == "hash"
+					})).
+					Return(nil, errors.New("unknown error"))
 			},
 			&dto.GetPasteRequest{Password: "pass"},
 			http.StatusInternalServerError,
