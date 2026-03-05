@@ -12,12 +12,18 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type repository struct {
-	pool *pgxpool.Pool
+type Cache interface {
+	Set(ctx context.Context, hash string, content *domain.PasteContent)
+	Get(ctx context.Context, hash string) *domain.PasteContent
 }
 
-func NewRepository(pool *pgxpool.Pool) *repository {
-	return &repository{pool: pool}
+type repository struct {
+	pool  *pgxpool.Pool
+	cache Cache
+}
+
+func NewRepository(pool *pgxpool.Pool, cache Cache) *repository {
+	return &repository{pool: pool, cache: cache}
 }
 
 func (r *repository) Create(ctx context.Context, paste *domain.Paste) (*domain.Paste, error) {
@@ -63,11 +69,78 @@ func (r *repository) Create(ctx context.Context, paste *domain.Paste) (*domain.P
 func (r *repository) GetByHash(ctx context.Context, hash string) (*domain.Paste, error) {
 	log := appctx.GetLogger(ctx)
 
+	if content := r.cache.Get(ctx, hash); content != nil {
+		paste, err := r.getInfoByHash(ctx, hash)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				log.Debug(fmt.Sprintf("paste %s not found", hash))
+				return nil, errs.PasteNotFound
+			}
+			log.Error(fmt.Sprintf("%v - getting paste error", err))
+			return nil, err
+		}
+
+		paste.Content = *content
+
+		log.Info(fmt.Sprintf("get paste - %s", hash))
+		return paste, nil
+	}
+
+	paste, err := r.getFullPasteByHash(ctx, hash)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			log.Debug(fmt.Sprintf("paste %s not found", hash))
+			return nil, errs.PasteNotFound
+		}
+		log.Error(fmt.Sprintf("%v - getting paste error", err))
+		return nil, err
+	}
+
+	log.Info(fmt.Sprintf("get paste - %s", hash))
+
+	log.Debug("update cache")
+	r.cache.Set(ctx, hash, &paste.Content)
+
+	return paste, nil
+}
+
+func (r *repository) getInfoByHash(ctx context.Context, hash string) (*domain.Paste, error) {
+	log := appctx.GetLogger(ctx)
+
+	query := `SELECT pi.id, pi.user_id, pi.views, pi.privacy, pi.password_hash, pi.created_at, pi.expire_at 
+				FROM paste_info pi WHERE paste_hash=$1`
+
+	result := &domain.Paste{}
+
+	log.Info("new DB query")
+	err := r.pool.QueryRow(ctx, query, hash).
+		Scan(
+			&result.Id,
+			&result.UserId,
+			&result.Views,
+			&result.Privacy,
+			&result.PasswordHash,
+			&result.CreatedAt,
+			&result.ExpireAt,
+		)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (r *repository) getFullPasteByHash(ctx context.Context, hash string) (*domain.Paste, error) {
+	log := appctx.GetLogger(ctx)
+
 	query := `SELECT pi.id, pi.user_id, pi.views, pi.privacy, pi.password_hash, pi.created_at, pi.expire_at, pc.content
     			FROM paste_info pi JOIN paste_content pc ON pi.id = pc.paste_id 
 				WHERE paste_hash=$1`
 
 	result := &domain.Paste{}
+
+	log.Info("new DB query")
 	err := r.pool.QueryRow(ctx, query, hash).
 		Scan(
 			&result.Id,
@@ -81,14 +154,8 @@ func (r *repository) GetByHash(ctx context.Context, hash string) (*domain.Paste,
 		)
 
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			log.Debug(fmt.Sprintf("paste %s not found", hash))
-			return nil, errs.PasteNotFound
-		}
-		log.Error(fmt.Sprintf("%v - getting paste error", err))
 		return nil, err
 	}
 
-	log.Debug(fmt.Sprintf("get past: hash - %s", hash))
 	return result, nil
 }
