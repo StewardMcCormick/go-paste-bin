@@ -14,14 +14,12 @@ type envKey string
 type userIdKey string
 
 var (
-	InvalidRequestIdError = errors.New("incorrect value for request id")
-	InvalidEnvError       = errors.New("incorrect value for env")
-	InvalidUserIdError    = errors.New("incorrect value for user id")
+	InvalidEnvError    = errors.New("incorrect value for env")
+	InvalidUserIdError = errors.New("incorrect value for user id")
 
-	LoggerKey    loggerCtxKey    = "logger"
-	RequestIdKey requestIdCtxKey = "request_id"
-	EnvKey       envKey          = "env"
-	UserIdKey    userIdKey       = "user_id"
+	LoggerKey loggerCtxKey = "logger"
+	EnvKey    envKey       = "env"
+	UserIdKey userIdKey    = "user_id"
 )
 
 func WithLogger(parent context.Context, logger *zap.Logger) context.Context {
