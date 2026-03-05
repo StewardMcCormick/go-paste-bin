@@ -68,8 +68,10 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 	}
 	logger.Info("[START] DataBase migrations executing completed")
 
+	pasteCache := paste.NewPasteInMemoryCache(ctx, 10)
+
 	uowFactory := repository.NewUWFactory(pool)
-	pasteRepo := paste.NewRepository(pool)
+	pasteRepo := paste.NewRepository(pool, pasteCache)
 	securityUtil := security.NewUtil()
 
 	userValid := validation.NewValidator[*dto.UserRequest](validator.New(validator.WithRequiredStructEnabled()))
@@ -119,6 +121,9 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 
 	viewWorker.Close(ctx)
 	logger.Info("[SHUTDOWN] View Worker closed")
+
+	pasteCache.Close(ctx)
+	logger.Info("[SHUTDOWN] Paste cache closed")
 
 	pool.Close()
 	logger.Info("[SHUTDOWN] PGX close completed")

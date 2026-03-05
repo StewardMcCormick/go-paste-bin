@@ -131,6 +131,7 @@ func (uc *UseCase) GetByHash(ctx context.Context, request dto.GetPasteRequest, h
 		return nil, errs.Unauthorized
 	}
 
+	paste.Views += 1
 	uc.viewWorker.SendEvent(ctx, views.ViewEvent{PasteId: paste.Id})
 
 	return paste.ToResponse(), nil

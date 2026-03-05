@@ -52,7 +52,6 @@ func (w *viewWorker) Start(ctx context.Context) {
 		ticker := time.NewTicker(w.updateTick)
 		defer ticker.Stop()
 		for {
-			log.Debug("waiting for events...")
 			select {
 			case <-ticker.C:
 				w.triggerUpdate(ctx)
@@ -112,6 +111,8 @@ func (w *viewWorker) processBuffer(ctx context.Context) {
 }
 
 func (w *viewWorker) sendUpdates(ctx context.Context) error {
+	log := appctx.GetLogger(ctx)
+
 	w.mu.Lock()
 	stats := make(map[int64]int, len(w.stats))
 	for k, v := range w.stats {
@@ -126,6 +127,7 @@ func (w *viewWorker) sendUpdates(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		log.Debug("new UPDATE request")
 	}
 
 	return nil
@@ -155,6 +157,8 @@ func (w *viewWorker) startBufferMonitor(ctx context.Context) {
 
 func (w *viewWorker) Close(ctx context.Context) {
 	log := appctx.GetLogger(ctx)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
 
 	close(w.quite)
 
