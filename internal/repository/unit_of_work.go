@@ -35,7 +35,8 @@ type NoTxUnitOfWork interface {
 }
 
 type pgxUnitOfWorkNoTx struct {
-	pool *pgxpool.Pool
+	pool  *pgxpool.Pool
+	cache api_key.Cache
 }
 
 func (uw *pgxUnitOfWorkNoTx) UserRepository() UserRepository {
@@ -43,7 +44,7 @@ func (uw *pgxUnitOfWorkNoTx) UserRepository() UserRepository {
 }
 
 func (uw *pgxUnitOfWorkNoTx) APIKeyRepository() APIKeyRepository {
-	return &api_key.Repository{Pool: uw.pool}
+	return &api_key.Repository{Pool: uw.pool, Cache: uw.cache}
 }
 
 type pgxUnitOfWorkTX struct {

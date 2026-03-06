@@ -1,4 +1,4 @@
-package paste
+package appcache
 
 import (
 	"context"
@@ -14,23 +14,30 @@ const (
 	ExpirationTime = time.Hour
 )
 
-type pasteContentCacheValue struct {
-	expireAt   time.Time
-	lastAccess time.Time
-	value      *domain.PasteContent
+type domainTypes interface {
+	*domain.PasteContent | *domain.APIKey
 }
 
-type inMemoryPasteContentCache struct {
-	storage  map[string]pasteContentCacheValue
+type cacheValue[T domainTypes] struct {
+	expireAt   time.Time
+	lastAccess time.Time
+	value      T
+}
+
+type inMemoryCache[K comparable, T domainTypes] struct {
+	storage  map[K]cacheValue[T]
 	mu       *sync.RWMutex
 	wg       *sync.WaitGroup
 	capacity int
 	quite    chan struct{}
 }
 
-func NewPasteInMemoryCache(ctx context.Context, capacity int) *inMemoryPasteContentCache {
-	cache := &inMemoryPasteContentCache{
-		storage:  make(map[string]pasteContentCacheValue, capacity),
+func NewInMemoryCache[K comparable, T domainTypes](
+	ctx context.Context,
+	capacity int,
+) *inMemoryCache[K, T] {
+	cache := &inMemoryCache[K, T]{
+		storage:  make(map[K]cacheValue[T], capacity),
 		mu:       &sync.RWMutex{},
 		wg:       &sync.WaitGroup{},
 		capacity: capacity,
@@ -42,7 +49,7 @@ func NewPasteInMemoryCache(ctx context.Context, capacity int) *inMemoryPasteCont
 	return cache
 }
 
-func (c *inMemoryPasteContentCache) Set(ctx context.Context, hash string, content *domain.PasteContent) {
+func (c *inMemoryCache[K, T]) Set(ctx context.Context, key K, value T) {
 	c.wg.Add(1)
 	go func() {
 		defer c.wg.Done()
@@ -54,8 +61,8 @@ func (c *inMemoryPasteContentCache) Set(ctx context.Context, hash string, conten
 			c.eviction()
 		}
 
-		c.storage[hash] = pasteContentCacheValue{
-			value:      content,
+		c.storage[key] = cacheValue[T]{
+			value:      value,
 			expireAt:   time.Now().Add(ExpirationTime),
 			lastAccess: time.Now(),
 		}
@@ -63,9 +70,9 @@ func (c *inMemoryPasteContentCache) Set(ctx context.Context, hash string, conten
 }
 
 // eviction use LRU algorithm
-func (c *inMemoryPasteContentCache) eviction() {
+func (c *inMemoryCache[K, T]) eviction() {
 	var (
-		oldestKey  string
+		oldestKey  K
 		oldestTime time.Time
 	)
 	c.mu.Lock()
@@ -78,17 +85,15 @@ func (c *inMemoryPasteContentCache) eviction() {
 		}
 	}
 
-	if oldestKey != "" {
-		delete(c.storage, oldestKey)
-	}
+	delete(c.storage, oldestKey)
 }
 
-func (c *inMemoryPasteContentCache) Get(ctx context.Context, hash string) *domain.PasteContent {
+func (c *inMemoryCache[K, T]) Get(ctx context.Context, key K) T {
 	log := appctx.GetLogger(ctx)
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	if v, ok := c.storage[hash]; ok {
+	if v, ok := c.storage[key]; ok {
 		log.Debug("cache hit")
 		return v.value
 	}
@@ -97,7 +102,7 @@ func (c *inMemoryPasteContentCache) Get(ctx context.Context, hash string) *domai
 	return nil
 }
 
-func (c *inMemoryPasteContentCache) startAutoCleanUp(ctx context.Context) {
+func (c *inMemoryCache[K, T]) startAutoCleanUp(ctx context.Context) {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 
@@ -118,7 +123,7 @@ func (c *inMemoryPasteContentCache) startAutoCleanUp(ctx context.Context) {
 	}()
 }
 
-func (c *inMemoryPasteContentCache) cleanup() {
+func (c *inMemoryCache[K, T]) cleanup() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -129,7 +134,7 @@ func (c *inMemoryPasteContentCache) cleanup() {
 	}
 }
 
-func (c *inMemoryPasteContentCache) Close(ctx context.Context) {
+func (c *inMemoryCache[K, T]) Close(ctx context.Context) {
 	log := appctx.GetLogger(ctx)
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()

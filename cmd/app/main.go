@@ -12,12 +12,14 @@ import (
 
 	"github.com/StewardMcCormick/Paste_Bin/config"
 	"github.com/StewardMcCormick/Paste_Bin/internal/adapter/postgres"
+	"github.com/StewardMcCormick/Paste_Bin/internal/domain"
 	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
 	"github.com/StewardMcCormick/Paste_Bin/internal/handler"
 	"github.com/StewardMcCormick/Paste_Bin/internal/handler/middleware"
 	pasteH "github.com/StewardMcCormick/Paste_Bin/internal/handler/paste"
 	userH "github.com/StewardMcCormick/Paste_Bin/internal/handler/user"
 	"github.com/StewardMcCormick/Paste_Bin/internal/repository"
+	appcache "github.com/StewardMcCormick/Paste_Bin/internal/repository/cache"
 	"github.com/StewardMcCormick/Paste_Bin/internal/repository/paste"
 	userUseCase "github.com/StewardMcCormick/Paste_Bin/internal/usecase/auth"
 	pasteUseCase "github.com/StewardMcCormick/Paste_Bin/internal/usecase/paste"
@@ -68,9 +70,10 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 	}
 	logger.Info("[START] DataBase migrations executing completed")
 
-	pasteCache := paste.NewPasteInMemoryCache(ctx, 10)
+	pasteCache := appcache.NewInMemoryCache[string, *domain.PasteContent](ctx, 10)
+	apiKeyCache := appcache.NewInMemoryCache[int64, *domain.APIKey](ctx, 10)
 
-	uowFactory := repository.NewUWFactory(pool)
+	uowFactory := repository.NewUWFactory(pool, apiKeyCache)
 	pasteRepo := paste.NewRepository(pool, pasteCache)
 	securityUtil := security.NewUtil()
 
@@ -123,7 +126,8 @@ func AppRun(ctx context.Context, cfg *config.Config) {
 	logger.Info("[SHUTDOWN] View Worker closed")
 
 	pasteCache.Close(ctx)
-	logger.Info("[SHUTDOWN] Paste cache closed")
+	apiKeyCache.Close(ctx)
+	logger.Info("[SHUTDOWN] Cache closed")
 
 	pool.Close()
 	logger.Info("[SHUTDOWN] PGX close completed")

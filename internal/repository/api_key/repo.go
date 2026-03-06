@@ -10,8 +10,14 @@ import (
 	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 )
 
+type Cache interface {
+	Set(ctx context.Context, key int64, value *domain.APIKey)
+	Get(ctx context.Context, key int64) *domain.APIKey
+}
+
 type Repository struct {
-	Pool postgres.DBTX
+	Pool  postgres.DBTX
+	Cache Cache
 }
 
 func (r *Repository) Create(ctx context.Context, userId int64, key *domain.APIKey) (*domain.APIKey, error) {
