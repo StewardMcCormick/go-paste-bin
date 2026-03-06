@@ -15,8 +15,9 @@ const (
 )
 
 type pasteContentCacheValue struct {
-	expireAt time.Time
-	value    *domain.PasteContent
+	expireAt   time.Time
+	lastAccess time.Time
+	value      *domain.PasteContent
 }
 
 type inMemoryPasteContentCache struct {
@@ -50,14 +51,19 @@ func (c *inMemoryPasteContentCache) Set(ctx context.Context, hash string, conten
 		defer c.mu.Unlock()
 
 		if len(c.storage) == c.capacity {
-			c.removeOldest()
+			c.eviction()
 		}
 
-		c.storage[hash] = pasteContentCacheValue{value: content, expireAt: time.Now().Add(ExpirationTime)}
+		c.storage[hash] = pasteContentCacheValue{
+			value:      content,
+			expireAt:   time.Now().Add(ExpirationTime),
+			lastAccess: time.Now(),
+		}
 	}()
 }
 
-func (c *inMemoryPasteContentCache) removeOldest() {
+// eviction use LRU algorithm
+func (c *inMemoryPasteContentCache) eviction() {
 	var (
 		oldestKey  string
 		oldestTime time.Time
@@ -66,9 +72,9 @@ func (c *inMemoryPasteContentCache) removeOldest() {
 	defer c.mu.Unlock()
 
 	for k, v := range c.storage {
-		if v.expireAt.Before(oldestTime) {
+		if v.lastAccess.Before(oldestTime) {
 			oldestKey = k
-			oldestTime = v.expireAt
+			oldestTime = v.lastAccess
 		}
 	}
 
