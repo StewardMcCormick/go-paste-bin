@@ -14,7 +14,7 @@ type ViewEvent struct {
 	PasteId int64
 }
 
-type viewWorker struct {
+type ViewWorker struct {
 	pool           *pgxpool.Pool
 	stats          map[int64]int
 	mu             *sync.Mutex
@@ -26,8 +26,8 @@ type viewWorker struct {
 	quite          chan struct{}
 }
 
-func NewViewsWorker(pool *pgxpool.Pool, bufferCapacity int, updateTick time.Duration) *viewWorker {
-	return &viewWorker{
+func NewViewsWorker(pool *pgxpool.Pool, bufferCapacity int, updateTick time.Duration) *ViewWorker {
+	return &ViewWorker{
 		pool:           pool,
 		stats:          make(map[int64]int),
 		mu:             &sync.Mutex{},
@@ -39,7 +39,7 @@ func NewViewsWorker(pool *pgxpool.Pool, bufferCapacity int, updateTick time.Dura
 	}
 }
 
-func (w *viewWorker) Start(ctx context.Context) {
+func (w *ViewWorker) Start(ctx context.Context) {
 	w.startBufferMonitor(ctx)
 	w.processBuffer(ctx)
 
@@ -68,7 +68,7 @@ func (w *viewWorker) Start(ctx context.Context) {
 	}()
 }
 
-func (w *viewWorker) triggerUpdate(ctx context.Context) {
+func (w *ViewWorker) triggerUpdate(ctx context.Context) {
 	log := appctx.GetLogger(ctx)
 	log.Debug("trigger")
 	err := w.sendUpdates(ctx)
@@ -77,7 +77,7 @@ func (w *viewWorker) triggerUpdate(ctx context.Context) {
 	}
 }
 
-func (w *viewWorker) SendEvent(ctx context.Context, event ViewEvent) {
+func (w *ViewWorker) SendEvent(ctx context.Context, event ViewEvent) {
 	log := appctx.GetLogger(ctx)
 	select {
 	case w.buffer <- event:
@@ -87,7 +87,7 @@ func (w *viewWorker) SendEvent(ctx context.Context, event ViewEvent) {
 	}
 }
 
-func (w *viewWorker) processBuffer(ctx context.Context) {
+func (w *ViewWorker) processBuffer(ctx context.Context) {
 	log := appctx.GetLogger(ctx)
 
 	w.wg.Add(1)
@@ -110,7 +110,7 @@ func (w *viewWorker) processBuffer(ctx context.Context) {
 	}()
 }
 
-func (w *viewWorker) sendUpdates(ctx context.Context) error {
+func (w *ViewWorker) sendUpdates(ctx context.Context) error {
 	log := appctx.GetLogger(ctx)
 
 	w.mu.Lock()
@@ -133,7 +133,7 @@ func (w *viewWorker) sendUpdates(ctx context.Context) error {
 	return nil
 }
 
-func (w *viewWorker) startBufferMonitor(ctx context.Context) {
+func (w *ViewWorker) startBufferMonitor(ctx context.Context) {
 	w.wg.Add(1)
 	go func() {
 		defer w.wg.Done()
@@ -155,7 +155,7 @@ func (w *viewWorker) startBufferMonitor(ctx context.Context) {
 	}()
 }
 
-func (w *viewWorker) Close(ctx context.Context) {
+func (w *ViewWorker) Close(ctx context.Context) {
 	log := appctx.GetLogger(ctx)
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()

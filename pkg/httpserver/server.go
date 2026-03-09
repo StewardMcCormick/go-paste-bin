@@ -14,7 +14,7 @@ type Server struct {
 	server *http.Server
 }
 
-func New(handler http.Handler, cfg *Config) *Server {
+func New(handler http.Handler, cfg Config) *Server {
 	return &Server{
 		&http.Server{
 			Addr:    cfg.Host + ":" + cfg.Port,
