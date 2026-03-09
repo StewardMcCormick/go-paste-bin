@@ -11,7 +11,9 @@ import (
 )
 
 const (
-	ExpirationTime = time.Hour
+	expirationTime = time.Hour
+
+	loadFactor = 80
 )
 
 type domainTypes interface {
@@ -21,11 +23,12 @@ type domainTypes interface {
 type cacheValue[T domainTypes] struct {
 	expireAt   time.Time
 	lastAccess time.Time
+	usageCount int
 	value      T
 }
 
 type inMemoryCache[K comparable, T domainTypes] struct {
-	storage  map[K]cacheValue[T]
+	storage  map[K]*cacheValue[T]
 	mu       *sync.RWMutex
 	wg       *sync.WaitGroup
 	capacity int
@@ -37,7 +40,7 @@ func NewInMemoryCache[K comparable, T domainTypes](
 	capacity int,
 ) *inMemoryCache[K, T] {
 	cache := &inMemoryCache[K, T]{
-		storage:  make(map[K]cacheValue[T], capacity),
+		storage:  make(map[K]*cacheValue[T], capacity),
 		mu:       &sync.RWMutex{},
 		wg:       &sync.WaitGroup{},
 		capacity: capacity,
@@ -61,31 +64,28 @@ func (c *inMemoryCache[K, T]) Set(ctx context.Context, key K, value T) {
 			c.eviction()
 		}
 
-		c.storage[key] = cacheValue[T]{
+		c.storage[key] = &cacheValue[T]{
 			value:      value,
-			expireAt:   time.Now().Add(ExpirationTime),
+			expireAt:   time.Now().Add(expirationTime),
 			lastAccess: time.Now(),
 		}
 	}()
 }
 
-// eviction use LRU algorithm
+// eviction use LFU algorithm, starts with c.mu locked
 func (c *inMemoryCache[K, T]) eviction() {
-	var (
-		oldestKey  K
-		oldestTime time.Time
-	)
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	for k, v := range c.storage {
-		if v.lastAccess.Before(oldestTime) {
-			oldestKey = k
-			oldestTime = v.lastAccess
-		}
+	toDeleteCount := len(c.storage) - c.capacity*loadFactor/100
+	if toDeleteCount <= 0 {
+		return
 	}
 
-	delete(c.storage, oldestKey)
+	sortedEntries := c.getSortEntries()
+	for i := 0; i < toDeleteCount; i++ {
+		delete(c.storage, sortedEntries[i].key)
+	}
 }
 
 func (c *inMemoryCache[K, T]) Get(ctx context.Context, key K) T {
@@ -95,6 +95,7 @@ func (c *inMemoryCache[K, T]) Get(ctx context.Context, key K) T {
 
 	if v, ok := c.storage[key]; ok {
 		log.Debug("cache hit")
+		v.usageCount++
 		return v.value
 	}
 
