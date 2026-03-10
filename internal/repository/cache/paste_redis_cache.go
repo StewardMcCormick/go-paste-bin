@@ -12,6 +12,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+type pasteCacheValue struct {
+	Content *domain.PasteContent `json:"content"`
+}
+
 type pasteCache struct {
 	client *redis.Client
 	wg     *sync.WaitGroup
@@ -28,7 +32,7 @@ func (c *pasteCache) Set(ctx context.Context, key string, value *domain.PasteCon
 	go func() {
 		defer c.wg.Done()
 
-		jsonValue, err := json.Marshal(value)
+		jsonValue, err := json.Marshal(&pasteCacheValue{Content: value})
 		if err != nil {
 			log.Error(fmt.Sprintf("JSON parsing error - %v", err))
 		}
@@ -48,14 +52,14 @@ func (c *pasteCache) Get(ctx context.Context, key string) *domain.PasteContent {
 		return nil
 	}
 
-	var result domain.PasteContent
+	var result pasteCacheValue
 	if err := json.Unmarshal(data, &result); err != nil {
 		log.Error(fmt.Sprintf("JSON parsing error - %v", err))
 		return nil
 	}
 
 	log.Debug("cache hit")
-	return &result
+	return result.Content
 }
 
 func (c *pasteCache) Close(ctx context.Context) {
