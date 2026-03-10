@@ -117,7 +117,9 @@ func (s *AuthMiddlewareTestSuite) Test_Auth_Error() {
 			s.SetupTest()
 			tc.setup()
 
+			callCount := 0
 			testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				callCount++
 				w.Write([]byte("hello"))
 			})
 
@@ -129,6 +131,7 @@ func (s *AuthMiddlewareTestSuite) Test_Auth_Error() {
 			midd.ServeHTTP(w, req)
 
 			s.Equal(tc.wantStatus, w.Result().StatusCode)
+			s.Equal(0, callCount)
 		})
 	}
 }
