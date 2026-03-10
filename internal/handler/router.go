@@ -22,10 +22,12 @@ func NewRouter(
 	userHandler UserHandler,
 	pasteHandler PasteHandler,
 	logMid mid.Logging,
+	ipRateLimitMid mid.IPLimiter,
 	recovererMid mid.Recoverer,
 	envMid mid.Environmental,
 	validMid mid.JSONValidation,
 	authMid mid.Auth,
+	userIdRateLimitMid mid.UserIdLimiter,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -43,13 +45,16 @@ func NewRouter(
 
 	r.Group(func(r chi.Router) {
 		r.Use(validMid.Handler)
+		r.Use(ipRateLimitMid.Handler)
 
 		r.Post("/registration", userHandler.Registration)
 		r.Post("/login", userHandler.Login)
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(validMid.Handler)
 		r.Use(authMid.Handler)
+		r.Use(userIdRateLimitMid.Handler)
 
 		r.Route("/paste", func(r chi.Router) {
 

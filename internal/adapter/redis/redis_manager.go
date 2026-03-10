@@ -12,7 +12,8 @@ import (
 const (
 	apiKeyCacheName = "API_KEY_CACHE"
 	pasteCacheName  = "PASTE_CACHE"
-	rateCacheName   = "RATE_LIMITING"
+	ipRateName      = "IP_RATE_LIMITING"
+	userIdRateName  = "USER_ID_RATE_LIMITING"
 )
 
 type CacheConfig struct {
@@ -66,16 +67,23 @@ func NewManager(cfg Config) (*Manager, error) {
 		manager.clients[pasteCacheName] = pasteCacheClient
 	}
 
-	//if cfg.Rate != nil {
-	//	cfg.Rate.Db = 0
-	//	rateClient, err := newClient(rateCacheName, cfg.Rate)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	manager.clients[rateCacheName] = rateClient
-	//}
-	//
+	if &cfg.Rate != nil {
+		cfg.Rate.Db = 0
+		ipRateClient, err := newClient(ipRateName, cfg.Rate)
+		if err != nil {
+			return nil, err
+		}
+
+		cfg.Rate.Db = 1
+		userIdRateClient, err := newClient(userIdRateName, cfg.Rate)
+		if err != nil {
+			return nil, err
+		}
+
+		manager.clients[ipRateName] = ipRateClient
+		manager.clients[userIdRateName] = userIdRateClient
+	}
+
 	return manager, nil
 }
 
@@ -106,6 +114,14 @@ func (m *Manager) GetAPIKeyCacheClient() *redis.Client {
 
 func (m *Manager) GetPasteCacheClient() *redis.Client {
 	return m.clients[pasteCacheName]
+}
+
+func (m *Manager) GetIpRateLimitingClient() *redis.Client {
+	return m.clients[ipRateName]
+}
+
+func (m *Manager) GetUserIdRateLimitingClient() *redis.Client {
+	return m.clients[userIdRateName]
 }
 
 func (m *Manager) Close() error {

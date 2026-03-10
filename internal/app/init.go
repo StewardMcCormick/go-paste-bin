@@ -18,6 +18,7 @@ import (
 	"github.com/StewardMcCormick/Paste_Bin/internal/repository/paste"
 	userUseCase "github.com/StewardMcCormick/Paste_Bin/internal/usecase/auth"
 	pasteUseCase "github.com/StewardMcCormick/Paste_Bin/internal/usecase/paste"
+	"github.com/StewardMcCormick/Paste_Bin/internal/util/rate"
 	"github.com/StewardMcCormick/Paste_Bin/internal/util/security"
 	"github.com/StewardMcCormick/Paste_Bin/internal/util/validation"
 	views "github.com/StewardMcCormick/Paste_Bin/internal/util/views_worker"
@@ -90,6 +91,9 @@ func (a *App) InitServer() error {
 	pasteCache := appcache.NewPasteCache(a.redis.GetPasteCacheClient())
 	apiKeyCache := appcache.NewAPIKeyCache(a.redis.GetAPIKeyCacheClient())
 
+	ipRateLimiter := rate.NewBucketLimiter(a.redis.GetIpRateLimitingClient(), "ip", 10, 1)
+	userIdRateLimiter := rate.NewBucketLimiter(a.redis.GetUserIdRateLimitingClient(), "user_id", 10, 1)
+
 	uowFactory := repository.NewUWFactory(a.pool, apiKeyCache)
 	pasteRepo := paste.NewRepository(a.pool, pasteCache)
 	securityUtil := security.NewUtil()
@@ -103,6 +107,9 @@ func (a *App) InitServer() error {
 	a.log.Info("[START] Server initialization...")
 
 	logMid := middleware.NewLogging(a.log)
+	ipRateLimitMid := middleware.NewIPLimiter(ipRateLimiter)
+	userIdLimitMid := middleware.NewUserIdLimiter(userIdRateLimiter)
+
 	recoverMid := middleware.NewRecoverer()
 	envMid := middleware.NewEnv(a.cfg.App.Env)
 	validMid := middleware.NewJSONValidation()
@@ -114,10 +121,12 @@ func (a *App) InitServer() error {
 		userHandler,
 		pasteHandler,
 		logMid,
+		ipRateLimitMid,
 		recoverMid,
 		envMid,
 		validMid,
 		authMid,
+		userIdLimitMid,
 	)
 	server := httpserver.New(router, a.cfg.Server)
 
