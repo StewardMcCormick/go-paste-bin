@@ -9,35 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
-
-func TestJSONValidation_Handler_NoError(t *testing.T) {
-	validJson := []byte(`{"message": "hello"}`)
-
-	callCount := 0
-	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		callCount++
-		w.WriteHeader(http.StatusOK)
-		w.Write(validJson)
-	})
-
-	req := httptest.NewRequest("GET", "/", bytes.NewReader(validJson))
-	w := httptest.NewRecorder()
-
-	handler := NewJSONValidation()
-	midd := handler.Handler(testHandler)
-
-	midd.ServeHTTP(w, req)
-
-	resultBody, err := io.ReadAll(w.Result().Body)
-	require.NoError(t, err)
-
-	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-	assert.Equal(t, string(validJson), string(resultBody))
-	assert.Equal(t, 1, callCount)
-	assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
-}
 
 type brokenBody struct {
 }
@@ -46,26 +18,48 @@ func (b *brokenBody) Read(p []byte) (n int, err error) {
 	return 0, errors.New("broken reader")
 }
 
-func TestJSONValidation_Handler_Error(t *testing.T) {
+func TestJSONValidation_Handler(t *testing.T) {
 	cases := []struct {
-		name         string
-		value        io.Reader
-		expectedCode int
+		name             string
+		value            io.Reader
+		method           string
+		expectedCode     int
+		expectedNextCall int
 	}{
+		{
+			"On GET method",
+			nil,
+			"GET",
+			http.StatusOK,
+			1,
+		},
+		{
+			"Valid JSON",
+			bytes.NewReader([]byte(`{"message": "hello"}`)),
+			"POST",
+			http.StatusOK,
+			1,
+		},
 		{
 			"With broken body",
 			&brokenBody{},
+			"POST",
 			http.StatusBadRequest,
+			0,
 		},
 		{
 			"Empty JSON",
 			bytes.NewReader([]byte("")),
+			"POST",
 			http.StatusBadRequest,
+			0,
 		},
 		{
 			"Invalid JSON",
 			bytes.NewReader([]byte(`{"message": ,}`)),
+			"POST",
 			http.StatusBadRequest,
+			0,
 		},
 	}
 
@@ -77,7 +71,7 @@ func TestJSONValidation_Handler_Error(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			req := httptest.NewRequest("GET", "/", tc.value)
+			req := httptest.NewRequest(tc.method, "/", tc.value)
 			w := httptest.NewRecorder()
 
 			handler := NewJSONValidation()
@@ -86,7 +80,7 @@ func TestJSONValidation_Handler_Error(t *testing.T) {
 			midd.ServeHTTP(w, req)
 
 			assert.Equal(t, tc.expectedCode, w.Result().StatusCode)
-			assert.Equal(t, 0, callCount)
+			assert.Equal(t, tc.expectedNextCall, callCount)
 			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 		})
 	}
