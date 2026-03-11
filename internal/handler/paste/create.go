@@ -3,6 +3,7 @@ package paste
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
@@ -13,7 +14,7 @@ import (
 func (h *httpHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	req := &dto.PasteRequest{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		errs.SendAppError(r.Context(), w, http.StatusBadRequest, err)
+		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.BadRequest))
 		return
 	}
 

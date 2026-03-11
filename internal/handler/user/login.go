@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
@@ -14,7 +15,7 @@ func (h *httpHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	user := &dto.UserRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-		errs.SendAppError(r.Context(), w, http.StatusBadRequest, err)
+		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.BadRequest))
 		return
 	}
 

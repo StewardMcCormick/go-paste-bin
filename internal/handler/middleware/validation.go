@@ -22,6 +22,11 @@ func (m *JSONValidation) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
+		if r.Method == http.MethodGet {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			errs.SendAppError(r.Context(), w, http.StatusBadRequest,

@@ -52,7 +52,6 @@ func NewRouter(
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Use(validMid.Handler)
 		r.Use(authMid.Handler)
 		r.Use(userIdRateLimitMid.Handler)
 

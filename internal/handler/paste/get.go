@@ -3,6 +3,8 @@ package paste
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/StewardMcCormick/Paste_Bin/internal/dto"
@@ -15,8 +17,8 @@ func (h *httpHandlers) GetPaste(w http.ResponseWriter, r *http.Request) {
 	pasteHash := chi.URLParam(r, "pasteHash")
 
 	req := dto.GetPasteRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		errs.SendAppError(r.Context(), w, http.StatusBadRequest, err)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.BadRequest))
 		return
 	}
 

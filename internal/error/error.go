@@ -12,6 +12,7 @@ var (
 	MethodNotAllowed       = errors.New("method not allowed")
 	ValidationProcessError = errors.New("validation error")
 	TooManyRequests        = errors.New("too many requests")
+	BadRequest             = errors.New("bad request")
 
 	// User Domain error
 	UserAlreadyExists = errors.New("user already exists")
