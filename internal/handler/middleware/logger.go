@@ -10,6 +10,10 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	RequestIdKey = "X-Request-ID"
+)
+
 type Logging struct {
 	logger *zap.Logger
 }
@@ -22,7 +26,7 @@ func (m *Logging) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		requestId := r.Header.Get("X-Request-ID")
+		requestId := r.Header.Get(RequestIdKey)
 		if requestId == "" {
 			requestId = uuid.NewString()
 		}
