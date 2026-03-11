@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
 	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 	"go.uber.org/zap"
 )
@@ -21,7 +22,7 @@ func (m *Recoverer) Handler(next http.Handler) http.Handler {
 			if err := recover(); err != nil {
 				logger := r.Context().Value(appctx.LoggerKey).(*zap.Logger)
 				logger.Error(fmt.Sprintf("[PANIC] %v", fmt.Sprint(err)))
-				w.WriteHeader(http.StatusInternalServerError)
+				errs.SendAppError(r.Context(), w, http.StatusInternalServerError, errs.InternalError)
 			}
 		}()
 

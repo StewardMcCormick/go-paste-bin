@@ -36,3 +36,4 @@ packages:
   github.com/StewardMcCormick/Paste_Bin/internal/handler/middleware:
     interfaces:
       AuthService:
+      Limiter:

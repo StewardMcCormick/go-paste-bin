@@ -53,6 +53,7 @@ func (l *UserIdLimiter) Handler(next http.Handler) http.Handler {
 		id, err := appctx.GetUserId(r.Context())
 		if err != nil {
 			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, errs.InternalError)
+			return
 		}
 
 		allowed, err := l.limiter.AllowRequest(r.Context(), strconv.FormatInt(id, 10))
