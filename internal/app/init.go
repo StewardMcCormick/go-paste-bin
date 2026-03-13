@@ -13,6 +13,7 @@ import (
 	"github.com/StewardMcCormick/Paste_Bin/internal/handler/middleware"
 	pasteH "github.com/StewardMcCormick/Paste_Bin/internal/handler/paste"
 	userH "github.com/StewardMcCormick/Paste_Bin/internal/handler/user"
+	"github.com/StewardMcCormick/Paste_Bin/internal/migrations"
 	"github.com/StewardMcCormick/Paste_Bin/internal/repository"
 	appcache "github.com/StewardMcCormick/Paste_Bin/internal/repository/cache"
 	"github.com/StewardMcCormick/Paste_Bin/internal/repository/paste"
@@ -25,7 +26,6 @@ import (
 	views "github.com/StewardMcCormick/Paste_Bin/internal/util/views_worker"
 	"github.com/StewardMcCormick/Paste_Bin/pkg/httpserver"
 	"github.com/StewardMcCormick/Paste_Bin/pkg/logging"
-	"github.com/StewardMcCormick/Paste_Bin/pkg/migrations"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-migrate/migrate/v4"
 )
@@ -54,7 +54,7 @@ func (a *App) InitPool(ctx context.Context, cfg postgres.Config) error {
 	a.log.Info("[START] PGX initialization completed")
 
 	a.log.Info("[START] DataBase migrations executing...")
-	err = migrations.Exec(cfg.DbUrl, cfg.MigrationsPath)
+	err = migrations.Exec(cfg.DbUrl)
 	if err != nil {
 		if errors.Is(err, migrate.ErrNoChange) {
 			a.log.Info("[START] Migrations - nothing to change")
