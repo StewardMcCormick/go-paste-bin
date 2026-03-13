@@ -1,6 +1,7 @@
 .idea
+.bin
 
 .env
-.env.docker
+.env.docker-compose
 
 .DS_Store
