@@ -318,3 +318,155 @@ func (s *HandlerTestSuite) Test_Get_Error() {
 		})
 	}
 }
+
+func (s *HandlerTestSuite) Test_Update_Success() {
+	now := time.Now()
+	expectedPaste := &dto.PasteResponse{
+		Id:        10,
+		Views:     9,
+		Privacy:   string(domain.PublicPolicy),
+		CreatedAt: now,
+		ExpireAt:  now.Add(time.Hour),
+		Content:   "content",
+		Hash:      "paste_hash",
+	}
+
+	reqPaste := &dto.PasteRequest{
+		Content:  "content",
+		Privacy:  string(domain.PublicPolicy),
+		ExpireAt: now.Add(time.Hour),
+		Password: "pass",
+	}
+	body, err := json.Marshal(reqPaste)
+	s.Require().NoError(err)
+
+	s.useCase.EXPECT().
+		UpdatePaste(mock.Anything, mock.Anything, mock.Anything).
+		Return(expectedPaste, nil).
+		Once()
+
+	req := httptest.NewRequest("PATCH", "/api/v1/paste", bytes.NewReader(body))
+	ctx := chi.NewRouteContext()
+	ctx.URLParams.Add("pasteHash", "paste_hash")
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+
+	w := httptest.NewRecorder()
+
+	s.handler.UpdatePaste(w, req)
+
+	resp := &dto.PasteResponse{}
+	err = json.NewDecoder(w.Result().Body).Decode(resp)
+	s.Require().NoError(err)
+
+	s.Equal(http.StatusOK, w.Result().StatusCode)
+	s.Equal(expectedPaste.Id, resp.Id)
+	s.Equal(expectedPaste.Views, resp.Views)
+	s.Equal(expectedPaste.Privacy, resp.Privacy)
+	s.True(expectedPaste.CreatedAt.Equal(resp.CreatedAt))
+	s.True(expectedPaste.ExpireAt.Equal(resp.ExpireAt))
+	s.Equal(expectedPaste.Content, resp.Content)
+}
+
+func (s *HandlerTestSuite) Test_Update_Error() {
+	now := time.Now()
+	testValue := &dto.PasteRequest{
+		Content:  "content",
+		Privacy:  string(domain.PublicPolicy),
+		ExpireAt: now.Add(time.Hour),
+		Password: "pass",
+	}
+
+	cases := []struct {
+		name         string
+		setup        func()
+		value        interface{}
+		expectedCode int
+	}{
+		{
+			"Invalid JSON",
+			func() {},
+			`{ invalid JSON }`,
+			http.StatusBadRequest,
+		},
+		{
+			"Paste Not Found",
+			func() {
+				s.useCase.EXPECT().
+					UpdatePaste(mock.Anything, "paste_hash",
+						mock.MatchedBy(func(req *dto.PasteRequest) bool {
+							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
+								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
+						})).
+					Return(nil, errs.PasteNotFound).
+					Once()
+			},
+			testValue,
+			http.StatusNotFound,
+		},
+		{
+			"Internal error",
+			func() {
+				s.useCase.EXPECT().
+					UpdatePaste(mock.Anything, "paste_hash",
+						mock.MatchedBy(func(req *dto.PasteRequest) bool {
+							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
+								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
+						})).
+					Return(nil, errs.InternalError).
+					Once()
+			},
+			testValue,
+			http.StatusInternalServerError,
+		},
+		{
+			"Bad Request error - Validation error",
+			func() {
+				s.useCase.EXPECT().
+					UpdatePaste(mock.Anything, "paste_hash",
+						mock.MatchedBy(func(req *dto.PasteRequest) bool {
+							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
+								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
+						})).
+					Return(nil, errs.ValidationError{}).
+					Once()
+			},
+			testValue,
+			http.StatusBadRequest,
+		},
+		{
+			"Bad Request error - from UseCase",
+			func() {
+				s.useCase.EXPECT().
+					UpdatePaste(mock.Anything, "paste_hash",
+						mock.MatchedBy(func(req *dto.PasteRequest) bool {
+							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
+								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
+						})).
+					Return(nil, errs.BadRequest).
+					Once()
+			},
+			testValue,
+			http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range cases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+			tc.setup()
+
+			reqBody, err := json.Marshal(tc.value)
+			s.Require().NoError(err)
+			req := httptest.NewRequest("PATCH", "/", bytes.NewReader(reqBody))
+			ctx := chi.NewRouteContext()
+			ctx.URLParams.Add("pasteHash", "paste_hash")
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+
+			w := httptest.NewRecorder()
+
+			s.handler.UpdatePaste(w, req)
+
+			s.Equal(tc.expectedCode, w.Result().StatusCode)
+		})
+	}
+}

@@ -21,7 +21,7 @@ func (uc *UseCase) UpdatePaste(ctx context.Context, hash string, request *dto.Pa
 	pasteFromDb, err := uc.repo.GetByHash(ctx, hash)
 	if err != nil {
 		log.Error(fmt.Sprintf("Get paste error - %v", err))
-		return nil, err
+		return nil, fmt.Errorf("%w - get past error", err)
 	}
 
 	requestToDomain := &domain.Paste{}

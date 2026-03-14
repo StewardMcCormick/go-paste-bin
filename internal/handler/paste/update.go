@@ -23,7 +23,10 @@ func (h *httpHandlers) UpdatePaste(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.useCase.UpdatePaste(r.Context(), hash, req)
 	if err != nil {
-		if errors.Is(err, errs.InternalError) {
+		if errors.Is(err, errs.PasteNotFound) {
+			errs.SendAppError(r.Context(), w, http.StatusNotFound, err)
+			return
+		} else if errors.Is(err, errs.InternalError) {
 			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, err)
 			return
 		}
