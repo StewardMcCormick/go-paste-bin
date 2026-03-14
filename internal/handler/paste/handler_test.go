@@ -331,7 +331,7 @@ func (s *HandlerTestSuite) Test_Update_Success() {
 		Hash:      "paste_hash",
 	}
 
-	reqPaste := &dto.PasteRequest{
+	reqPaste := &dto.UpdatePasteRequest{
 		Content:  "content",
 		Privacy:  string(domain.PublicPolicy),
 		ExpireAt: now.Add(time.Hour),
@@ -369,7 +369,7 @@ func (s *HandlerTestSuite) Test_Update_Success() {
 
 func (s *HandlerTestSuite) Test_Update_Error() {
 	now := time.Now()
-	testValue := &dto.PasteRequest{
+	testValue := &dto.UpdatePasteRequest{
 		Content:  "content",
 		Privacy:  string(domain.PublicPolicy),
 		ExpireAt: now.Add(time.Hour),
@@ -393,7 +393,7 @@ func (s *HandlerTestSuite) Test_Update_Error() {
 			func() {
 				s.useCase.EXPECT().
 					UpdatePaste(mock.Anything, "paste_hash",
-						mock.MatchedBy(func(req *dto.PasteRequest) bool {
+						mock.MatchedBy(func(req *dto.UpdatePasteRequest) bool {
 							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
 								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
 						})).
@@ -408,7 +408,7 @@ func (s *HandlerTestSuite) Test_Update_Error() {
 			func() {
 				s.useCase.EXPECT().
 					UpdatePaste(mock.Anything, "paste_hash",
-						mock.MatchedBy(func(req *dto.PasteRequest) bool {
+						mock.MatchedBy(func(req *dto.UpdatePasteRequest) bool {
 							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
 								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
 						})).
@@ -423,7 +423,7 @@ func (s *HandlerTestSuite) Test_Update_Error() {
 			func() {
 				s.useCase.EXPECT().
 					UpdatePaste(mock.Anything, "paste_hash",
-						mock.MatchedBy(func(req *dto.PasteRequest) bool {
+						mock.MatchedBy(func(req *dto.UpdatePasteRequest) bool {
 							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
 								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
 						})).
@@ -438,7 +438,7 @@ func (s *HandlerTestSuite) Test_Update_Error() {
 			func() {
 				s.useCase.EXPECT().
 					UpdatePaste(mock.Anything, "paste_hash",
-						mock.MatchedBy(func(req *dto.PasteRequest) bool {
+						mock.MatchedBy(func(req *dto.UpdatePasteRequest) bool {
 							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
 								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
 						})).

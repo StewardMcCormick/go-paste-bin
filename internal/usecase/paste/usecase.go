@@ -19,8 +19,12 @@ type Repository interface {
 	Update(ctx context.Context, paste *domain.Paste) (*domain.Paste, error)
 }
 
-type Validator interface {
+type CreateRequestValidator interface {
 	Validate(request *dto.PasteRequest) error
+}
+
+type UpdateRequestValidator interface {
+	Validate(request *dto.UpdatePasteRequest) error
 }
 
 type Security interface {
@@ -34,19 +38,27 @@ type ViewWorker interface {
 }
 
 type UseCase struct {
-	cfg        Config
-	repo       Repository
-	valid      Validator
-	security   Security
-	viewWorker ViewWorker
+	cfg                Config
+	repo               Repository
+	createRequestValid CreateRequestValidator
+	updateRequestValid UpdateRequestValidator
+	security           Security
+	viewWorker         ViewWorker
 }
 
-func NewUseCase(cfg Config, repo Repository, valid Validator, security Security, viewWorker ViewWorker) *UseCase {
+func NewUseCase(
+	cfg Config,
+	repo Repository,
+	createRequestValid CreateRequestValidator,
+	updateRequestValid UpdateRequestValidator,
+	security Security,
+	viewWorker ViewWorker) *UseCase {
 	return &UseCase{
-		cfg:        cfg,
-		repo:       repo,
-		valid:      valid,
-		security:   security,
-		viewWorker: viewWorker,
+		cfg:                cfg,
+		repo:               repo,
+		createRequestValid: createRequestValid,
+		updateRequestValid: updateRequestValid,
+		security:           security,
+		viewWorker:         viewWorker,
 	}
 }

@@ -9,7 +9,7 @@ import (
 type UseCase interface {
 	Create(ctx context.Context, request *dto.PasteRequest) (*dto.PasteResponse, error)
 	GetByHash(ctx context.Context, request dto.GetPasteRequest, hash string) (*dto.PasteResponse, error)
-	UpdatePaste(ctx context.Context, hash string, request *dto.PasteRequest) (*dto.PasteResponse, error)
+	UpdatePaste(ctx context.Context, hash string, request *dto.UpdatePasteRequest) (*dto.PasteResponse, error)
 }
 
 type httpHandlers struct {

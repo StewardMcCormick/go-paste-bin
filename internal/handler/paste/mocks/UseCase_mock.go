@@ -181,7 +181,7 @@ func (_c *MockUseCase_GetByHash_Call) RunAndReturn(run func(ctx context.Context,
 }
 
 // UpdatePaste provides a mock function for the type MockUseCase
-func (_mock *MockUseCase) UpdatePaste(ctx context.Context, hash string, request *dto.PasteRequest) (*dto.PasteResponse, error) {
+func (_mock *MockUseCase) UpdatePaste(ctx context.Context, hash string, request *dto.UpdatePasteRequest) (*dto.PasteResponse, error) {
 	ret := _mock.Called(ctx, hash, request)
 
 	if len(ret) == 0 {
@@ -190,17 +190,17 @@ func (_mock *MockUseCase) UpdatePaste(ctx context.Context, hash string, request 
 
 	var r0 *dto.PasteResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *dto.PasteRequest) (*dto.PasteResponse, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *dto.UpdatePasteRequest) (*dto.PasteResponse, error)); ok {
 		return returnFunc(ctx, hash, request)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *dto.PasteRequest) *dto.PasteResponse); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *dto.UpdatePasteRequest) *dto.PasteResponse); ok {
 		r0 = returnFunc(ctx, hash, request)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*dto.PasteResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *dto.PasteRequest) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *dto.UpdatePasteRequest) error); ok {
 		r1 = returnFunc(ctx, hash, request)
 	} else {
 		r1 = ret.Error(1)
@@ -216,12 +216,12 @@ type MockUseCase_UpdatePaste_Call struct {
 // UpdatePaste is a helper method to define mock.On call
 //   - ctx context.Context
 //   - hash string
-//   - request *dto.PasteRequest
+//   - request *dto.UpdatePasteRequest
 func (_e *MockUseCase_Expecter) UpdatePaste(ctx interface{}, hash interface{}, request interface{}) *MockUseCase_UpdatePaste_Call {
 	return &MockUseCase_UpdatePaste_Call{Call: _e.mock.On("UpdatePaste", ctx, hash, request)}
 }
 
-func (_c *MockUseCase_UpdatePaste_Call) Run(run func(ctx context.Context, hash string, request *dto.PasteRequest)) *MockUseCase_UpdatePaste_Call {
+func (_c *MockUseCase_UpdatePaste_Call) Run(run func(ctx context.Context, hash string, request *dto.UpdatePasteRequest)) *MockUseCase_UpdatePaste_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -231,9 +231,9 @@ func (_c *MockUseCase_UpdatePaste_Call) Run(run func(ctx context.Context, hash s
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 *dto.PasteRequest
+		var arg2 *dto.UpdatePasteRequest
 		if args[2] != nil {
-			arg2 = args[2].(*dto.PasteRequest)
+			arg2 = args[2].(*dto.UpdatePasteRequest)
 		}
 		run(
 			arg0,
@@ -249,7 +249,7 @@ func (_c *MockUseCase_UpdatePaste_Call) Return(pasteResponse *dto.PasteResponse,
 	return _c
 }
 
-func (_c *MockUseCase_UpdatePaste_Call) RunAndReturn(run func(ctx context.Context, hash string, request *dto.PasteRequest) (*dto.PasteResponse, error)) *MockUseCase_UpdatePaste_Call {
+func (_c *MockUseCase_UpdatePaste_Call) RunAndReturn(run func(ctx context.Context, hash string, request *dto.UpdatePasteRequest) (*dto.PasteResponse, error)) *MockUseCase_UpdatePaste_Call {
 	_c.Call.Return(run)
 	return _c
 }

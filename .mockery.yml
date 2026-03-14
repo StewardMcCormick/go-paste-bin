@@ -22,7 +22,8 @@ packages:
   github.com/StewardMcCormick/Paste_Bin/internal/usecase/paste:
     interfaces:
       Repository:
-      Validator:
+      CreateRequestValidator:
+      UpdateRequestValidator:
       Security:
       ViewWorker:
   github.com/StewardMcCormick/Paste_Bin/internal/handler/paste:

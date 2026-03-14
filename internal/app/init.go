@@ -107,11 +107,18 @@ func (a *App) InitServer() error {
 	pasteRepo := paste.NewRepository(a.pool, pasteCache)
 	securityUtil := security.NewUtil()
 
-	userValid := validation.NewValidator[*dto.UserRequest](validator.New(validator.WithRequiredStructEnabled()))
-	pasteValid := validation.NewValidator[*dto.PasteRequest](validator.New(validator.WithRequiredStructEnabled()))
+	userValid :=
+		validation.NewValidator[*dto.UserRequest](validator.New(validator.WithRequiredStructEnabled()))
+
+	createRequestPasteValid :=
+		validation.NewValidator[*dto.PasteRequest](validator.New(validator.WithRequiredStructEnabled()))
+
+	updateRequestPasteValid :=
+		validation.NewValidator[*dto.UpdatePasteRequest](validator.New(validator.WithRequiredStructEnabled()))
 
 	authUc := userUseCase.NewUseCase(uowFactory, securityUtil, userValid, a.cfg.Auth)
-	pasteUc := pasteUseCase.NewUseCase(a.cfg.Paste, pasteRepo, pasteValid, securityUtil, a.viewWorker)
+	pasteUc := pasteUseCase.NewUseCase(a.cfg.Paste, pasteRepo, createRequestPasteValid,
+		updateRequestPasteValid, securityUtil, a.viewWorker)
 
 	a.log.Info("[START] Server initialization...")
 

@@ -13,7 +13,7 @@ import (
 )
 
 func (h *httpHandlers) UpdatePaste(w http.ResponseWriter, r *http.Request) {
-	req := &dto.PasteRequest{}
+	req := &dto.UpdatePasteRequest{}
 	hash := chi.URLParam(r, "pasteHash")
 
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {

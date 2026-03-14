@@ -18,11 +18,12 @@ import (
 
 type UseCaseTestSuite struct {
 	suite.Suite
-	repo     *mocks.MockRepository
-	valid    *mocks.MockValidator
-	security *mocks.MockSecurity
-	worker   *mocks.MockViewWorker
-	useCase  *UseCase
+	repo               *mocks.MockRepository
+	createRequestValid *mocks.MockCreateRequestValidator
+	updateRequestValid *mocks.MockUpdateRequestValidator
+	security           *mocks.MockSecurity
+	worker             *mocks.MockViewWorker
+	useCase            *UseCase
 }
 
 func TestUseCaseSuite(t *testing.T) {
@@ -31,12 +32,13 @@ func TestUseCaseSuite(t *testing.T) {
 
 func (s *UseCaseTestSuite) SetupTest() {
 	s.repo = mocks.NewMockRepository(s.T())
-	s.valid = mocks.NewMockValidator(s.T())
+	s.createRequestValid = mocks.NewMockCreateRequestValidator(s.T())
+	s.updateRequestValid = mocks.NewMockUpdateRequestValidator(s.T())
 	s.security = mocks.NewMockSecurity(s.T())
 	s.worker = mocks.NewMockViewWorker(s.T())
 
 	testCfg := Config{DefaultPasteExpiresTime: 7 * time.Hour}
-	s.useCase = NewUseCase(testCfg, s.repo, s.valid, s.security, s.worker)
+	s.useCase = NewUseCase(testCfg, s.repo, s.createRequestValid, s.updateRequestValid, s.security, s.worker)
 }
 
 func (s *UseCaseTestSuite) TestCreate_Success_CorrectlyExpireTimeSetting() {
@@ -62,7 +64,7 @@ func (s *UseCaseTestSuite) TestCreate_Success_CorrectlyExpireTimeSetting() {
 					ExpireAt:  now.Add(s.useCase.cfg.DefaultPasteExpiresTime),
 				}
 
-				s.valid.EXPECT().
+				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
 					Return(nil).
 					Once()
@@ -102,7 +104,7 @@ func (s *UseCaseTestSuite) TestCreate_Success_CorrectlyExpireTimeSetting() {
 					ExpireAt:  now.Add(24 * 3 * time.Hour),
 				}
 
-				s.valid.EXPECT().
+				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
 					Return(nil).
 					Once()
@@ -176,7 +178,7 @@ func (s *UseCaseTestSuite) TestCreate_Success_CorrectlyPasswordSetting() {
 					ExpireAt:  now.Add(s.useCase.cfg.DefaultPasteExpiresTime),
 				}
 
-				s.valid.EXPECT().
+				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
 					Return(nil).
 					Once()
@@ -216,7 +218,7 @@ func (s *UseCaseTestSuite) TestCreate_Success_CorrectlyPasswordSetting() {
 					ExpireAt:  now.Add(s.useCase.cfg.DefaultPasteExpiresTime),
 				}
 
-				s.valid.EXPECT().
+				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
 					Return(nil).
 					Once()
@@ -261,7 +263,7 @@ func (s *UseCaseTestSuite) TestCreate_Success_CorrectlyPasswordSetting() {
 					ExpireAt:  now.Add(s.useCase.cfg.DefaultPasteExpiresTime),
 				}
 
-				s.valid.EXPECT().
+				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
 					Return(nil).
 					Once()
@@ -322,7 +324,7 @@ func (s *UseCaseTestSuite) TestCreate_Error() {
 			"Paste validation error",
 			func() {
 				ctx = appctx.WithUserId(context.Background(), 1)
-				s.valid.EXPECT().
+				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
 					Return(errs.ValidationProcessError).
 					Once()
@@ -334,7 +336,7 @@ func (s *UseCaseTestSuite) TestCreate_Error() {
 			"Incorrect UserId from context",
 			func() {
 				ctx = context.WithValue(context.Background(), appctx.UserIdKey, "abc")
-				s.valid.EXPECT().
+				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
 					Return(nil).
 					Once()
@@ -346,7 +348,7 @@ func (s *UseCaseTestSuite) TestCreate_Error() {
 			"Password hashing error on Protected Paste",
 			func() {
 				ctx = appctx.WithUserId(context.Background(), 1)
-				s.valid.EXPECT().
+				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
 					Return(nil).
 					Once()
@@ -362,7 +364,7 @@ func (s *UseCaseTestSuite) TestCreate_Error() {
 			"Generate Paste hash error",
 			func() {
 				ctx = appctx.WithUserId(context.Background(), 1)
-				s.valid.EXPECT().
+				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
 					Return(nil).
 					Once()
@@ -378,7 +380,7 @@ func (s *UseCaseTestSuite) TestCreate_Error() {
 			"Repo error",
 			func() {
 				ctx = appctx.WithUserId(context.Background(), 1)
-				s.valid.EXPECT().
+				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
 					Return(nil).
 					Once()

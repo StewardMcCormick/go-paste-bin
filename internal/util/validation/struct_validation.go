@@ -18,7 +18,7 @@ var (
 )
 
 type dtoTypes interface {
-	*dto.UserRequest | *dto.PasteRequest
+	*dto.UserRequest | *dto.PasteRequest | *dto.UpdatePasteRequest
 }
 
 type appValidator[T dtoTypes] struct {
@@ -77,10 +77,23 @@ func (uv *appValidator[T]) convertTagToMessage(fe validator.FieldError) string {
 	}
 }
 
-func passwordRequiredIfProtectedRule(fl validator.FieldLevel) bool {
-	req := fl.Parent().Interface().(dto.PasteRequest)
+type privacyConstraint interface {
+	~struct{ Privacy string }
+}
 
-	if req.Privacy != string(domain.ProtectedPolicy) {
+func passwordRequiredIfProtectedRule(fl validator.FieldLevel) bool {
+	var privacy string
+
+	switch req := fl.Parent().Interface().(type) {
+	case dto.PasteRequest:
+		privacy = req.Privacy
+	case dto.UpdatePasteRequest:
+		privacy = req.Privacy
+	default:
+		return false
+	}
+
+	if privacy != string(domain.ProtectedPolicy) {
 		return true
 	}
 

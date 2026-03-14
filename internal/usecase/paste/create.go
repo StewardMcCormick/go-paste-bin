@@ -13,7 +13,7 @@ import (
 
 func (uc *UseCase) Create(ctx context.Context, request *dto.PasteRequest) (*dto.PasteResponse, error) {
 	log := appctx.GetLogger(ctx)
-	if err := uc.valid.Validate(request); err != nil {
+	if err := uc.createRequestValid.Validate(request); err != nil {
 		log.Debug(fmt.Sprintf("validation error - %v", err))
 		return nil, err
 	}

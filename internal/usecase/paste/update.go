@@ -10,10 +10,10 @@ import (
 	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
 )
 
-func (uc *UseCase) UpdatePaste(ctx context.Context, hash string, request *dto.PasteRequest) (*dto.PasteResponse, error) {
+func (uc *UseCase) UpdatePaste(ctx context.Context, hash string, request *dto.UpdatePasteRequest) (*dto.PasteResponse, error) {
 	log := appctx.GetLogger(ctx)
 
-	if err := uc.valid.Validate(request); err != nil {
+	if err := uc.updateRequestValid.Validate(request); err != nil {
 		log.Debug(fmt.Sprintf("validation error - %v", err))
 		return nil, fmt.Errorf("%w - paste validation error", err)
 	}
