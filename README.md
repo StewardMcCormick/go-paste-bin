@@ -99,14 +99,14 @@ go-paste-bin/
 ### Запуск локально
 1. Клонировать репозиторий: `git clone https://github.com/StewardMcCormick/go-paste-bin.git`
 2. Перейти в папку с проектом: `cd ./go-paste-bin`
-3. Скопировать `.env.example` в `.env` и заполнить значениями для свои PostgreSQL и Redis (запустить их, если это не сделано)
+3. Скопировать `.env.example` в `.env` и заполнить значениями для своих PostgreSQL и Redis (запустить их, если это не сделано)
 4. Выполнить `make run-local`
 5. Сервис будет доступен по адресу `http://localhost:8080`
 
 ### Запуск в Docker-контейнере
 1. Клонировать репозиторий: `git clone https://github.com/StewardMcCormick/go-paste-bin.git`
 2. Перейти в папку с проектом: `cd ./go-paste-bin`
-3. Скопировать `.env.docker-single.example` в `.env.docker-single` и заполнить значениями для свои PostgreSQL и Redis(запустить их, если это не сделано)
+3. Скопировать `.env.docker-single.example` в `.env.docker-single` и заполнить значениями для своих PostgreSQL и Redis(запустить их, если это не сделано)
 4. Выполнить `make run-docker-single`
 
 ## 📞 API endpoints
