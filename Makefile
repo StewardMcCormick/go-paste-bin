@@ -10,6 +10,10 @@ test: gen-mocks
 test-with-cover: gen-mocks
 	@go test -cover ./...
 
+.PHONY: test-integrations
+test-integrations:
+	@go test -v -count=1 ./test/...
+
 .PHONY: build-local
 build-local:
 	@go build -o ./bin/app ./cmd/app/main.go

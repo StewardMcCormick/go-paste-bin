@@ -8,6 +8,8 @@ bin
 .env.docker-compose
 .env.docker-compose.example
 
+test
+
 Makefile
 
 README.md
