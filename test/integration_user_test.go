@@ -15,7 +15,7 @@ type UserRepoIntTestSuite struct {
 	repo *user.Repository
 }
 
-func TestPasteRepoInt(t *testing.T) {
+func TestUserRepoInt(t *testing.T) {
 	suite.Run(t, new(UserRepoIntTestSuite))
 }
 
@@ -34,27 +34,14 @@ func (s *UserRepoIntTestSuite) TearDownSuite() {
 }
 
 func (s *UserRepoIntTestSuite) Test_GetByUsername_Success() {
-	query := `SELECT * FROM users WHERE id=$1`
-
-	resultFromDb := &domain.User{}
-	err := pool.QueryRow(context.Background(), query, testUser.Id).Scan(
-		&resultFromDb.Id,
-		&resultFromDb.Username,
-		&resultFromDb.Password,
-		&resultFromDb.CreatedAt,
-	)
-
-	s.Require().NoError(err)
-
 	resultFromRepo, err := s.repo.GetByUsername(context.Background(), testUser.Username)
 
 	s.Require().NoError(err)
 
-	s.NotNil(resultFromDb)
-	s.Equal(resultFromDb.Id, resultFromRepo.Id)
-	s.Equal(resultFromDb.Username, resultFromRepo.Username)
-	s.Equal(resultFromDb.Password, resultFromRepo.Password)
-	s.True(resultFromDb.CreatedAt.Equal(resultFromRepo.CreatedAt))
+	s.Equal(testUser.Id, resultFromRepo.Id)
+	s.Equal(testUser.Username, resultFromRepo.Username)
+	s.Equal(testUser.Password, resultFromRepo.Password)
+	s.True(testUser.CreatedAt.Equal(resultFromRepo.CreatedAt))
 }
 
 func (s *UserRepoIntTestSuite) Test_GetByUsername_NotFound() {

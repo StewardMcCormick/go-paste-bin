@@ -20,11 +20,11 @@ type Cache interface {
 
 type Repository struct {
 	pool  *pgxpool.Pool
-	cache Cache
+	Cache Cache
 }
 
 func NewRepository(pool *pgxpool.Pool, cache Cache) *Repository {
-	return &Repository{pool: pool, cache: cache}
+	return &Repository{pool: pool, Cache: cache}
 }
 
 func (r *Repository) Create(ctx context.Context, paste *domain.Paste) (*domain.Paste, error) {
@@ -70,7 +70,7 @@ func (r *Repository) Create(ctx context.Context, paste *domain.Paste) (*domain.P
 func (r *Repository) GetByHash(ctx context.Context, hash string) (*domain.Paste, error) {
 	log := appctx.GetLogger(ctx)
 
-	if content := r.cache.Get(ctx, hash); content != nil {
+	if content := r.Cache.Get(ctx, hash); content != nil {
 		paste, err := r.getInfoByHash(ctx, hash)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
@@ -99,8 +99,8 @@ func (r *Repository) GetByHash(ctx context.Context, hash string) (*domain.Paste,
 
 	log.Info(fmt.Sprintf("get paste - %s", hash))
 
-	log.Debug("update cache")
-	r.cache.Set(ctx, hash, &paste.Content)
+	log.Debug("update Cache")
+	r.Cache.Set(ctx, hash, &paste.Content)
 
 	return paste, nil
 }
@@ -108,7 +108,7 @@ func (r *Repository) GetByHash(ctx context.Context, hash string) (*domain.Paste,
 func (r *Repository) getInfoByHash(ctx context.Context, hash string) (*domain.Paste, error) {
 	log := appctx.GetLogger(ctx)
 
-	query := `SELECT pi.id, pi.user_id, pi.views, pi.privacy, pi.password_hash, pi.created_at, pi.expire_at 
+	query := `SELECT pi.id, pi.user_id, pi.views, pi.privacy, pi.password_hash, pi.created_at, pi.expire_at, pi.paste_hash 
 				FROM paste_info pi WHERE paste_hash=$1`
 
 	result := &domain.Paste{}
@@ -123,6 +123,7 @@ func (r *Repository) getInfoByHash(ctx context.Context, hash string) (*domain.Pa
 			&result.PasswordHash,
 			&result.CreatedAt,
 			&result.ExpireAt,
+			&result.Hash,
 		)
 
 	if err != nil {
@@ -135,7 +136,7 @@ func (r *Repository) getInfoByHash(ctx context.Context, hash string) (*domain.Pa
 func (r *Repository) getFullPasteByHash(ctx context.Context, hash string) (*domain.Paste, error) {
 	log := appctx.GetLogger(ctx)
 
-	query := `SELECT pi.id, pi.user_id, pi.views, pi.privacy, pi.password_hash, pi.created_at, pi.expire_at, pc.content
+	query := `SELECT pi.id, pi.user_id, pi.views, pi.privacy, pi.password_hash, pi.created_at, pi.expire_at, pi.paste_hash, pc.content
     			FROM paste_info pi JOIN paste_content pc ON pi.id = pc.paste_id 
 				WHERE paste_hash=$1`
 
@@ -151,6 +152,7 @@ func (r *Repository) getFullPasteByHash(ctx context.Context, hash string) (*doma
 			&result.PasswordHash,
 			&result.CreatedAt,
 			&result.ExpireAt,
+			&result.Hash,
 			&result.Content,
 		)
 
@@ -194,7 +196,7 @@ func (r *Repository) Update(ctx context.Context, paste *domain.Paste) (*domain.P
 		return nil, err
 	}
 
-	r.cache.RevokeByKey(ctx, paste.Hash)
+	r.Cache.RevokeByKey(ctx, paste.Hash)
 
 	return paste, nil
 }

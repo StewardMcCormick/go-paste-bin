@@ -26,6 +26,7 @@ var (
 
 	testUser   = &domain.User{}
 	testAPIKey = &domain.APIKey{}
+	testPaste  = &domain.Paste{}
 )
 
 func TestMain(m *testing.M) {
@@ -178,6 +179,39 @@ func createTestAPIKey(ctx context.Context, pool *pgxpool.Pool) {
 		&testAPIKey.ExpiresAt,
 		&testAPIKey.Prefix,
 	)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func createTestPaste(ctx context.Context, pool *pgxpool.Pool) {
+	now := time.Now()
+	query := `INSERT INTO paste_info(
+                       user_id, paste_hash, views, privacy, password_hash, created_at, expire_at) VALUES (
+		$1, 'test_hash', '0', 'public', 'pass_hash', $2, $3   
+    ) RETURNING *`
+
+	err := pool.QueryRow(ctx, query, testUser.Id, now, now.Add(time.Hour)).Scan(
+		&testPaste.Id,
+		&testPaste.UserId,
+		&testPaste.Hash,
+		&testPaste.Views,
+		&testPaste.Privacy,
+		&testPaste.PasswordHash,
+		&testPaste.CreatedAt,
+		&testPaste.ExpireAt,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	query = `INSERT INTO paste_content (paste_id, content) VALUES (
+		$1, 'content'
+	) RETURNING content`
+
+	err = pool.QueryRow(ctx, query, testPaste.Id).Scan(&testPaste.Content)
 
 	if err != nil {
 		panic(err)
