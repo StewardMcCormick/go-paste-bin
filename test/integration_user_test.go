@@ -10,10 +10,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-var (
-	testUser = &domain.User{}
-)
-
 type UserRepoIntTestSuite struct {
 	suite.Suite
 	repo *user.Repository
@@ -26,17 +22,7 @@ func TestPasteRepoInt(t *testing.T) {
 func (s *UserRepoIntTestSuite) SetupSuite() {
 	s.repo = user.NewRepository(pool)
 
-	createUserQuery := `INSERT INTO users(username, password_hash, created_at) VALUES (
-    	'test_user', 'test_pass_hash', now()
-	) RETURNING *`
-
-	err := pool.QueryRow(context.Background(), createUserQuery).Scan(
-		&testUser.Id,
-		&testUser.Username,
-		&testUser.Password,
-		&testUser.CreatedAt,
-	)
-	s.Require().NoError(err)
+	createTestUser(context.Background(), pool)
 }
 
 func (s *UserRepoIntTestSuite) TearDownSuite() {
@@ -47,7 +33,7 @@ func (s *UserRepoIntTestSuite) TearDownSuite() {
 	s.Require().NoError(err)
 }
 
-func (s *UserRepoIntTestSuite) Test_Get_Success() {
+func (s *UserRepoIntTestSuite) Test_GetByUsername_Success() {
 	query := `SELECT * FROM users WHERE id=$1`
 
 	resultFromDb := &domain.User{}
@@ -71,7 +57,7 @@ func (s *UserRepoIntTestSuite) Test_Get_Success() {
 	s.True(resultFromDb.CreatedAt.Equal(resultFromRepo.CreatedAt))
 }
 
-func (s *UserRepoIntTestSuite) Test_Get_NotFound() {
+func (s *UserRepoIntTestSuite) Test_GetByUsername_NotFound() {
 	result, err := s.repo.GetByUsername(context.Background(), "not_exist")
 
 	s.NoError(err)

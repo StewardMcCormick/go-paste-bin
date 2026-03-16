@@ -20,6 +20,10 @@ type Repository struct {
 	Cache Cache
 }
 
+func NewRepository(pool postgres.DBTX, cache Cache) *Repository {
+	return &Repository{pool, cache}
+}
+
 func (r *Repository) Create(ctx context.Context, userId int64, key *domain.APIKey) (*domain.APIKey, error) {
 	log := appctx.GetLogger(ctx)
 
@@ -61,7 +65,7 @@ func (r *Repository) GetByKeyHash(ctx context.Context, hash string) (key *domain
 		return keyFromCache, nil
 	}
 
-	query := `SELECT key_hash, user_id, expire_at, key_prefix FROM api_key WHERE key_hash=$1`
+	query := `SELECT key_hash, user_id, created_at, expire_at, key_prefix FROM api_key WHERE key_hash=$1`
 	rows, err := r.Pool.Query(ctx, query, hash)
 	defer rows.Close()
 
@@ -75,7 +79,7 @@ func (r *Repository) GetByKeyHash(ctx context.Context, hash string) (key *domain
 	}
 
 	key = &domain.APIKey{}
-	err = rows.Scan(&key.Key, &key.UserId, &key.ExpiresAt, &key.Prefix)
+	err = rows.Scan(&key.Key, &key.UserId, &key.CreatedAt, &key.ExpiresAt, &key.Prefix)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err

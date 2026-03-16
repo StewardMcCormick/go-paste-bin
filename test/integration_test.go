@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/StewardMcCormick/Paste_Bin/internal/domain"
 	"github.com/StewardMcCormick/Paste_Bin/internal/migrations"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go/modules/compose"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -23,6 +23,9 @@ var (
 	pool                   *pgxpool.Pool
 	pasteCacheRedisClient  *redis.Client
 	apiKeyCacheRedisClient *redis.Client
+
+	testUser   = &domain.User{}
+	testAPIKey = &domain.APIKey{}
 )
 
 func TestMain(m *testing.M) {
@@ -145,6 +148,38 @@ func getPostgresConnectionString(ctx context.Context, compose compose.ComposeSta
 	)
 }
 
-func Test_Empty(t *testing.T) {
-	assert.Equal(t, 1, 1)
+func createTestUser(ctx context.Context, pool *pgxpool.Pool) {
+	query := `INSERT INTO users(username, password_hash, created_at) VALUES (
+    	'test_user', 'test_pass_hash', now()
+	) RETURNING *`
+
+	err := pool.QueryRow(context.Background(), query).Scan(
+		&testUser.Id,
+		&testUser.Username,
+		&testUser.Password,
+		&testUser.CreatedAt,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func createTestAPIKey(ctx context.Context, pool *pgxpool.Pool) {
+	query := `INSERT INTO api_key(key_hash, user_id, created_at, expire_at, key_prefix) VALUES (
+    	'test_hash', $1, $2, $3, 'pb_test'                                                                              
+	) RETURNING *`
+
+	now := time.Now()
+	err := pool.QueryRow(ctx, query, testUser.Id, now, now.Add(3*time.Hour)).Scan(
+		&testAPIKey.Key,
+		&testAPIKey.UserId,
+		&testAPIKey.CreatedAt,
+		&testAPIKey.ExpiresAt,
+		&testAPIKey.Prefix,
+	)
+
+	if err != nil {
+		panic(err)
+	}
 }

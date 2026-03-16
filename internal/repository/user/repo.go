@@ -6,14 +6,13 @@ import (
 	"github.com/StewardMcCormick/Paste_Bin/internal/adapter/postgres"
 	"github.com/StewardMcCormick/Paste_Bin/internal/domain"
 	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository struct {
 	Pool postgres.DBTX
 }
 
-func NewRepository(pool *pgxpool.Pool) *Repository {
+func NewRepository(pool postgres.DBTX) *Repository {
 	return &Repository{Pool: pool}
 }
 
