@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/StewardMcCormick/Paste_Bin/internal/domain"
+	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
 	"github.com/StewardMcCormick/Paste_Bin/internal/repository/user"
 	"github.com/stretchr/testify/suite"
 )
@@ -47,22 +48,8 @@ func (s *UserRepoIntTestSuite) Test_GetByUsername_Success() {
 func (s *UserRepoIntTestSuite) Test_GetByUsername_NotFound() {
 	result, err := s.repo.GetByUsername(context.Background(), "not_exist")
 
-	s.NoError(err)
+	s.ErrorIs(err, errs.UserNotFound)
 	s.Nil(result)
-}
-
-func (s *UserRepoIntTestSuite) Test_Exists_True() {
-	result, err := s.repo.Exists(context.Background(), testUser.Username)
-
-	s.NoError(err)
-	s.True(result)
-}
-
-func (s *UserRepoIntTestSuite) Test_Exists_False() {
-	result, err := s.repo.Exists(context.Background(), "not_exist")
-
-	s.NoError(err)
-	s.False(result)
 }
 
 func (s *UserRepoIntTestSuite) Test_Create_Success() {

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/StewardMcCormick/Paste_Bin/internal/domain"
+	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
 	apikey "github.com/StewardMcCormick/Paste_Bin/internal/repository/api_key"
 	appcache "github.com/StewardMcCormick/Paste_Bin/internal/repository/cache"
 	"github.com/stretchr/testify/suite"
@@ -81,7 +82,7 @@ func (s *APIKeyRepoIntTest) Test_GetByHash_NotFound() {
 	result, err := s.repo.GetByKeyHash(context.Background(), "not_exist")
 
 	s.Nil(result)
-	s.NoError(err)
+	s.ErrorIs(err, errs.APIKeyNotFound)
 }
 
 func (s *APIKeyRepoIntTest) Test_Create_Success() {
@@ -144,5 +145,5 @@ func (s *APIKeyRepoIntTest) Test_RevokeByUserId_Success() {
 func (s *APIKeyRepoIntTest) Test_RevokeByUserId_NotFound() {
 	err := s.repo.RevokeKeyByUserId(context.Background(), 100)
 
-	s.Error(err)
+	s.NoError(err)
 }

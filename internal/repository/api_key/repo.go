@@ -54,7 +54,7 @@ func (r *Repository) RevokeKeyByUserId(ctx context.Context, userId int64) error 
 	err := r.Pool.QueryRow(ctx, query, userId).Scan(&hash)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return fmt.Errorf("api-key revoke error - %w", errs.APIKeyNotFound)
+			return nil
 		}
 		return fmt.Errorf("api-key revoke error - %w", err)
 	}
@@ -69,19 +69,14 @@ func (r *Repository) GetByKeyHash(ctx context.Context, hash string) (key *domain
 	}
 
 	query := `SELECT key_hash, user_id, created_at, expire_at, key_prefix FROM api_key WHERE key_hash=$1`
-	rows, err := r.Pool.Query(ctx, query, hash)
-	defer rows.Close()
 
+	key = &domain.APIKey{}
+	err = r.Pool.QueryRow(ctx, query, hash).
+		Scan(&key.Key, &key.UserId, &key.CreatedAt, &key.ExpiresAt, &key.Prefix)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("api-key get error - %w", errs.APIKeyNotFound)
 		}
-		return nil, fmt.Errorf("api-key get error - %w", err)
-	}
-
-	key = &domain.APIKey{}
-	err = rows.Scan(&key.Key, &key.UserId, &key.CreatedAt, &key.ExpiresAt, &key.Prefix)
-	if err != nil {
 		return nil, fmt.Errorf("api-key get error - %w", err)
 	}
 
