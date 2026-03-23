@@ -17,10 +17,14 @@ var (
 	// User Domain error
 	UserAlreadyExists = errors.New("user already exists")
 	UserNotFound      = errors.New("user not found")
-	APIKeyNotFound    = errors.New("API key not found")
+
+	// API-key Domain error
+	APIKeyAlreadyExists = errors.New("API-key already exists")
+	APIKeyNotFound      = errors.New("API key not found")
 
 	// Paste Domain error
-	PasteNotFound = errors.New("paste not found")
+	PasteNotFound      = errors.New("paste not found")
+	PasteAlreadyExists = errors.New("paste already exists")
 )
 
 type BaseError struct {

@@ -2,11 +2,15 @@ package api_key
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/StewardMcCormick/Paste_Bin/internal/adapter/postgres"
 	"github.com/StewardMcCormick/Paste_Bin/internal/domain"
-	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
+	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type Cache interface {
@@ -25,16 +29,17 @@ func NewRepository(pool postgres.DBTX, cache Cache) *Repository {
 }
 
 func (r *Repository) Create(ctx context.Context, userId int64, key *domain.APIKey) (*domain.APIKey, error) {
-	log := appctx.GetLogger(ctx)
-
 	query := `INSERT INTO api_key(key_hash, user_id, created_at, expire_at, key_prefix) 
 					VALUES ($1, $2, $3, $4, $5) RETURNING expire_at`
 	_, err := r.Pool.Exec(ctx, query, key.Key, userId, key.CreatedAt, key.ExpiresAt, key.Prefix)
 
 	if err != nil {
-		log.Error(err.Error())
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return nil, fmt.Errorf("api-key creating error - %w", errs.APIKeyAlreadyExists)
+		}
 
-		return nil, err
+		return nil, fmt.Errorf("api-key creating error - %w", err)
 	}
 
 	key.UserId = userId
@@ -43,15 +48,15 @@ func (r *Repository) Create(ctx context.Context, userId int64, key *domain.APIKe
 }
 
 func (r *Repository) RevokeKeyByUserId(ctx context.Context, userId int64) error {
-	log := appctx.GetLogger(ctx)
-
 	query := `DELETE FROM api_key WHERE user_id=$1 RETURNING key_hash`
 
 	hash := ""
 	err := r.Pool.QueryRow(ctx, query, userId).Scan(&hash)
 	if err != nil {
-		log.Error(err.Error())
-		return err
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("api-key revoke error - %w", errs.APIKeyNotFound)
+		}
+		return fmt.Errorf("api-key revoke error - %w", err)
 	}
 
 	r.Cache.DeleteByKey(ctx, hash)
@@ -59,8 +64,6 @@ func (r *Repository) RevokeKeyByUserId(ctx context.Context, userId int64) error 
 }
 
 func (r *Repository) GetByKeyHash(ctx context.Context, hash string) (key *domain.APIKey, err error) {
-	log := appctx.GetLogger(ctx)
-
 	if keyFromCache := r.Cache.Get(ctx, hash); keyFromCache != nil {
 		return keyFromCache, nil
 	}
@@ -70,23 +73,19 @@ func (r *Repository) GetByKeyHash(ctx context.Context, hash string) (key *domain
 	defer rows.Close()
 
 	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-
-	if !rows.Next() {
-		return nil, nil
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("api-key get error - %w", errs.APIKeyNotFound)
+		}
+		return nil, fmt.Errorf("api-key get error - %w", err)
 	}
 
 	key = &domain.APIKey{}
 	err = rows.Scan(&key.Key, &key.UserId, &key.CreatedAt, &key.ExpiresAt, &key.Prefix)
 	if err != nil {
-		log.Error(err.Error())
-		return nil, err
+		return nil, fmt.Errorf("api-key get error - %w", err)
 	}
 
 	r.Cache.Set(ctx, key.Key, key)
 
-	log.Debug(fmt.Sprintf("Get key from db - %v", key))
 	return key, nil
 }

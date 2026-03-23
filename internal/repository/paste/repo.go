@@ -7,8 +7,9 @@ import (
 
 	"github.com/StewardMcCormick/Paste_Bin/internal/domain"
 	errs "github.com/StewardMcCormick/Paste_Bin/internal/error"
-	appctx "github.com/StewardMcCormick/Paste_Bin/internal/util/app_context"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -28,13 +29,11 @@ func NewRepository(pool *pgxpool.Pool, cache Cache) *Repository {
 }
 
 func (r *Repository) Create(ctx context.Context, paste *domain.Paste) (*domain.Paste, error) {
-	log := appctx.GetLogger(ctx)
 	tx, err := r.pool.Begin(ctx)
 	defer tx.Rollback(ctx)
 
 	if err != nil {
-		log.Error(fmt.Sprintf("%s - tx begin error", err.Error()))
-		return nil, err
+		return nil, fmt.Errorf("tx begin error - %w", err)
 	}
 
 	query := `INSERT INTO paste_info(user_id, paste_hash, views, privacy, password_hash, created_at, expire_at) 
@@ -45,75 +44,66 @@ func (r *Repository) Create(ctx context.Context, paste *domain.Paste) (*domain.P
 	).Scan(&paste.Id)
 
 	if err != nil {
-		log.Error(fmt.Sprintf("%s - paste-info saving error", err.Error()))
-		return nil, err
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return nil, fmt.Errorf("paste create error - %w", errs.PasteAlreadyExists)
+		}
+		return nil, fmt.Errorf("paste create error - %w", err)
 	}
 
 	query = `INSERT INTO paste_content(paste_id, content) VALUES ($1, $2)`
 
 	_, err = tx.Exec(ctx, query, paste.Id, paste.Content)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s - paste-content saving error", err.Error()))
-		return nil, err
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return nil, fmt.Errorf("paste create error - %w", errs.PasteAlreadyExists)
+		}
+		return nil, fmt.Errorf("paste create error - %w", err)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s - tx commit error", err.Error()))
-		return nil, err
+		return nil, fmt.Errorf("tx commit error - %w", err)
 	}
 
-	log.Debug(fmt.Sprintf("new paste: id - %d, user_id - %d", paste.Id, paste.UserId))
 	return paste, nil
 }
 
 func (r *Repository) GetByHash(ctx context.Context, hash string) (*domain.Paste, error) {
-	log := appctx.GetLogger(ctx)
-
 	if content := r.Cache.Get(ctx, hash); content != nil {
 		paste, err := r.getInfoByHash(ctx, hash)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
-				log.Debug(fmt.Sprintf("paste %s not found", hash))
-				return nil, errs.PasteNotFound
+				return nil, fmt.Errorf("paste get error - %w", errs.PasteNotFound)
 			}
-			log.Error(fmt.Sprintf("%v - getting paste error", err))
-			return nil, errs.InternalError
+			return nil, fmt.Errorf("paste get error - %w", err)
 		}
 
 		paste.Content = *content
 
-		log.Info(fmt.Sprintf("get paste - %s", hash))
 		return paste, nil
 	}
 
 	paste, err := r.getFullPasteByHash(ctx, hash)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			log.Debug(fmt.Sprintf("paste %s not found", hash))
-			return nil, errs.PasteNotFound
+			return nil, fmt.Errorf("paste get error - %w", errs.PasteNotFound)
 		}
-		log.Error(fmt.Sprintf("%v - getting paste error", err))
-		return nil, errs.InternalError
+		return nil, fmt.Errorf("paste get error - %w", err)
 	}
 
-	log.Info(fmt.Sprintf("get paste - %s", hash))
-
-	log.Debug("update Cache")
 	r.Cache.Set(ctx, hash, &paste.Content)
 
 	return paste, nil
 }
 
 func (r *Repository) getInfoByHash(ctx context.Context, hash string) (*domain.Paste, error) {
-	log := appctx.GetLogger(ctx)
-
 	query := `SELECT pi.id, pi.user_id, pi.views, pi.privacy, pi.password_hash, pi.created_at, pi.expire_at, pi.paste_hash 
 				FROM paste_info pi WHERE paste_hash=$1`
 
 	result := &domain.Paste{}
 
-	log.Info("new DB query")
 	err := r.pool.QueryRow(ctx, query, hash).
 		Scan(
 			&result.Id,
@@ -134,15 +124,12 @@ func (r *Repository) getInfoByHash(ctx context.Context, hash string) (*domain.Pa
 }
 
 func (r *Repository) getFullPasteByHash(ctx context.Context, hash string) (*domain.Paste, error) {
-	log := appctx.GetLogger(ctx)
-
 	query := `SELECT pi.id, pi.user_id, pi.views, pi.privacy, pi.password_hash, pi.created_at, pi.expire_at, pi.paste_hash, pc.content
     			FROM paste_info pi JOIN paste_content pc ON pi.id = pc.paste_id 
 				WHERE paste_hash=$1`
 
 	result := &domain.Paste{}
 
-	log.Info("new DB query")
 	err := r.pool.QueryRow(ctx, query, hash).
 		Scan(
 			&result.Id,
@@ -164,12 +151,9 @@ func (r *Repository) getFullPasteByHash(ctx context.Context, hash string) (*doma
 }
 
 func (r *Repository) Update(ctx context.Context, paste *domain.Paste) (*domain.Paste, error) {
-	log := appctx.GetLogger(ctx)
-
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
-		log.Error(fmt.Sprintf("tx begin error - %v", err))
-		return nil, err
+		return nil, fmt.Errorf("tx begin error - %w", err)
 	}
 	defer tx.Rollback(ctx)
 
@@ -178,22 +162,25 @@ func (r *Repository) Update(ctx context.Context, paste *domain.Paste) (*domain.P
 	id := int64(0)
 	err = tx.QueryRow(ctx, query, paste.Privacy, paste.PasswordHash, paste.ExpireAt, paste.Hash).Scan(&id)
 	if err != nil {
-		log.Error(fmt.Sprintf("update paste-info error - %v", err))
-		return nil, err
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("paste update error - %w", errs.PasteNotFound)
+		}
+		return nil, fmt.Errorf("paste update error - %w", err)
 	}
 
 	query = `UPDATE paste_content SET content=$1 WHERE paste_id=$2`
 
 	_, err = tx.Exec(ctx, query, paste.Content, id)
 	if err != nil {
-		log.Error(fmt.Sprintf("update paste-content error - %v", err))
-		return nil, err
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("paste update error - %w", errs.PasteNotFound)
+		}
+		return nil, fmt.Errorf("paste update error - %w", err)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		log.Error(fmt.Sprintf("commit tx error - %v", err))
-		return nil, err
+		return nil, fmt.Errorf("tx commit error - %w", err)
 	}
 
 	r.Cache.RevokeByKey(ctx, paste.Hash)
