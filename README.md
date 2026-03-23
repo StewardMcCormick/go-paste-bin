@@ -251,7 +251,7 @@ curl -X PATCH `http://localhost:8080/api/v1/paste/{paste_hash}` \
 - `make test`: запуск всех тестов
 - `make test-with-cover`: запуск всех тестов с отчетом по покрытию
 - `make test-integrations`: запуск интеграционных тестов
-- `make test-without-integrations`: запуск тестов, исключая интеграционные
+- `make test-unit`: запуск тестов, исключая интеграционные
 
 ## ☎️ Контакты:
 

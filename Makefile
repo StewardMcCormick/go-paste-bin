@@ -6,8 +6,8 @@ gen-mocks:
 test: gen-mocks
 	@go test ./...
 
-.PHONY: test-without-integrations
-test-without-integrations: gen-mocks
+.PHONY: test-unit
+test-unit: gen-mocks
 	@go test $(shell go list ./... | grep -v ./test)
 
 .PHONY: test-with-cover
@@ -56,7 +56,12 @@ clean-docker:
 
 .PHONY: help
 help:
-	@echo "Supported command with 'make':";
+	@echo "Supported command with 'make':"
+	@echo "- gen-mocks: generate mocks for unit-tests"
+	@echo "- test: run all tests without coverage"
+	@echo "- test-with-cover: run all tests with coverage"
+	@echo "- test-unit: run all unit-tests"
+	@echo "- test-integrations: run all integration-tests"
 	@echo "- build-local: compile project in binary file 'app.exe' locate in ./bin"
 	@echo "- build-docker-single: build docker image 'paste-bin-api:latest'"
 	@echo "- build-docker-compose: build docker compose on docker-compose.yaml"
