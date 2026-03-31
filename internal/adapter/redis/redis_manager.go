@@ -35,8 +35,8 @@ type RateConfig struct {
 }
 
 type Config struct {
-	Cache CacheConfig `yaml:"cache"`
-	Rate  RateConfig  `yaml:"rate"`
+	Cache *CacheConfig `yaml:"cache"`
+	Rate  *RateConfig  `yaml:"rate"`
 }
 
 type Manager struct {
@@ -50,7 +50,7 @@ func NewManager(cfg Config) (*Manager, error) {
 		mu:      &sync.Mutex{},
 	}
 
-	if &cfg.Cache != nil {
+	if cfg.Cache != nil {
 		cfg.Cache.Db = 0
 		apiKeyCacheClient, err := newClient(apiKeyCacheName, cfg.Cache)
 		if err != nil {
@@ -67,7 +67,7 @@ func NewManager(cfg Config) (*Manager, error) {
 		manager.clients[pasteCacheName] = pasteCacheClient
 	}
 
-	if &cfg.Rate != nil {
+	if cfg.Rate != nil {
 		cfg.Rate.Db = 0
 		ipRateClient, err := newClient(ipRateName, cfg.Rate)
 		if err != nil {

@@ -326,11 +326,11 @@ func (s *UseCaseTestSuite) Test_Create_Error() {
 				ctx = appctx.WithUserId(context.Background(), 1)
 				s.createRequestValid.EXPECT().
 					Validate(mock.Anything).
-					Return(errs.ValidationProcessError).
+					Return(errs.ErrValidationProcess).
 					Once()
 			},
 			&dto.PasteRequest{},
-			errs.ValidationProcessError,
+			errs.ErrValidationProcess,
 		},
 		{
 			"Incorrect UserId from context",
@@ -342,7 +342,7 @@ func (s *UseCaseTestSuite) Test_Create_Error() {
 					Once()
 			},
 			&dto.PasteRequest{},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Password hashing error on Protected Paste",
@@ -358,7 +358,7 @@ func (s *UseCaseTestSuite) Test_Create_Error() {
 					Once()
 			},
 			&dto.PasteRequest{Privacy: string(domain.ProtectedPolicy)},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Generate Paste hash error",
@@ -374,7 +374,7 @@ func (s *UseCaseTestSuite) Test_Create_Error() {
 					Once()
 			},
 			&dto.PasteRequest{},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Repo error",
@@ -394,7 +394,7 @@ func (s *UseCaseTestSuite) Test_Create_Error() {
 					Once()
 			},
 			&dto.PasteRequest{},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 	}
 
@@ -549,10 +549,10 @@ func (s *UseCaseTestSuite) Test_GetByHash_Error() {
 				ctx = appctx.WithUserId(context.Background(), 1)
 				s.repo.EXPECT().
 					GetByHash(mock.Anything, mock.Anything).
-					Return(nil, errs.PasteNotFound).
+					Return(nil, errs.ErrPasteNotFound).
 					Once()
 			},
-			errs.PasteNotFound,
+			errs.ErrPasteNotFound,
 		},
 		{
 			"Repo error - internal error",
@@ -564,7 +564,7 @@ func (s *UseCaseTestSuite) Test_GetByHash_Error() {
 					Return(nil, errors.New("db error")).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Incorrect User_Id in ctx",
@@ -576,10 +576,10 @@ func (s *UseCaseTestSuite) Test_GetByHash_Error() {
 					Return(&domain.Paste{}, nil).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
-			"Forbidden error - get Private paste with another user_id",
+			"ErrForbidden error - get Private paste with another user_id",
 			"hash",
 			func() {
 				ctx = appctx.WithUserId(context.Background(), 1)
@@ -589,10 +589,10 @@ func (s *UseCaseTestSuite) Test_GetByHash_Error() {
 					Once()
 
 			},
-			errs.Forbidden,
+			errs.ErrForbidden,
 		},
 		{
-			"Unauthorized error - wrong password",
+			"ErrUnauthorized error - wrong password",
 			"hash",
 			func() {
 				ctx = appctx.WithUserId(context.Background(), 1)
@@ -605,7 +605,7 @@ func (s *UseCaseTestSuite) Test_GetByHash_Error() {
 					Return(false).
 					Once()
 			},
-			errs.Unauthorized,
+			errs.ErrUnauthorized,
 		},
 	}
 
@@ -900,18 +900,18 @@ func (s *UseCaseTestSuite) Test_UpdatePaste_Error() {
 		{
 			"Validation error",
 			&dto.UpdatePasteRequest{},
-			errs.ValidationProcessError,
+			errs.ErrValidationProcess,
 			func() {
 				s.updateRequestValid.EXPECT().
 					Validate(mock.Anything).
-					Return(errs.ValidationProcessError).
+					Return(errs.ErrValidationProcess).
 					Once()
 			},
 		},
 		{
 			"Get Paste By Hash - Not Found error",
 			&dto.UpdatePasteRequest{},
-			errs.PasteNotFound,
+			errs.ErrPasteNotFound,
 			func() {
 				s.updateRequestValid.EXPECT().
 					Validate(mock.Anything).
@@ -920,14 +920,14 @@ func (s *UseCaseTestSuite) Test_UpdatePaste_Error() {
 
 				s.repo.EXPECT().
 					GetByHash(mock.Anything, mock.Anything).
-					Return(nil, errs.PasteNotFound).
+					Return(nil, errs.ErrPasteNotFound).
 					Once()
 			},
 		},
 		{
 			"Get Paste By Hash - Internal error",
 			&dto.UpdatePasteRequest{},
-			errs.InternalError,
+			errs.ErrInternal,
 			func() {
 				s.updateRequestValid.EXPECT().
 					Validate(mock.Anything).
@@ -946,7 +946,7 @@ func (s *UseCaseTestSuite) Test_UpdatePaste_Error() {
 				Privacy:  string(domain.ProtectedPolicy),
 				Password: "pass",
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 			func() {
 				s.updateRequestValid.EXPECT().
 					Validate(mock.Anything).
@@ -971,7 +971,7 @@ func (s *UseCaseTestSuite) Test_UpdatePaste_Error() {
 		{
 			"Update paste error",
 			&dto.UpdatePasteRequest{},
-			errs.InternalError,
+			errs.ErrInternal,
 			func() {
 				s.updateRequestValid.EXPECT().
 					Validate(mock.Anything).

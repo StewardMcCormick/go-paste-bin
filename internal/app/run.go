@@ -44,13 +44,13 @@ func (a *App) Shutdown(ctx context.Context) {
 
 	err = a.server.Close()
 	if err != nil {
-		log.Panic(fmt.Sprintf("[SHUTDOWN] Server closing error: %v", err))
+		log.Panicf("[SHUTDOWN] Server closing error: %v", err)
 	}
 	a.log.Info("[SHUTDOWN] Server close completed")
 
 	err = a.log.Sync()
 	if err != nil && !errors.Is(err, syscall.ENOTTY) && !errors.Is(err, syscall.EINVAL) && !errors.Is(err, syscall.EBADF) {
-		log.Panic(fmt.Sprintf("[SHUTDOWN] Log sync error: %v", err))
+		log.Panicf("[SHUTDOWN] Log sync error: %v", err)
 	}
 	a.log.Info("[SHUTDOWN] Logger sync completed")
 

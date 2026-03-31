@@ -14,13 +14,13 @@ import (
 func (h *httpHandlers) Registration(w http.ResponseWriter, r *http.Request) {
 	var userRequest dto.UserRequest
 	if err := json.NewDecoder(r.Body).Decode(&userRequest); err != nil {
-		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.BadRequest))
+		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.ErrBadRequest))
 		return
 	}
 
 	user, err := h.authUseCase.Registration(r.Context(), &userRequest)
 	if err != nil {
-		if errors.Is(err, errs.UserAlreadyExists) {
+		if errors.Is(err, errs.ErrUserAlreadyExists) {
 			errs.SendAppError(r.Context(), w, http.StatusConflict, err)
 			return
 		} else if errors.As(err, &errs.ValidationError{}) {

@@ -30,7 +30,7 @@ func TestValidator_ValidateUser(t *testing.T) {
 			"User with empty fields",
 			&dto.UserRequest{Username: "", Password: ""},
 			&errs.ValidationError{
-				Message: errs.ValidationProcessError.Error(),
+				Message: errs.ErrValidationProcess.Error(),
 				Status:  http.StatusBadRequest,
 				Errors: []errs.ValidationFieldError{
 					{"Username", RequiredFieldMessage, ""},
@@ -42,7 +42,7 @@ func TestValidator_ValidateUser(t *testing.T) {
 			"User with too shorten fields",
 			&dto.UserRequest{Username: "Us", Password: "pass"},
 			&errs.ValidationError{
-				Message: errs.ValidationProcessError.Error(),
+				Message: errs.ErrValidationProcess.Error(),
 				Status:  http.StatusBadRequest,
 				Errors: []errs.ValidationFieldError{
 					{"Username", MinLengthMessage, "Us"},
@@ -54,7 +54,7 @@ func TestValidator_ValidateUser(t *testing.T) {
 			"User with too longer fields",
 			&dto.UserRequest{Username: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Password: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
 			&errs.ValidationError{
-				Message: errs.ValidationProcessError.Error(),
+				Message: errs.ErrValidationProcess.Error(),
 				Status:  http.StatusBadRequest,
 				Errors: []errs.ValidationFieldError{
 					{"Username", MaxLengthMessage, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
@@ -113,7 +113,7 @@ func TestValidator_ValidatePaste(t *testing.T) {
 				Password: "pass",
 			},
 			&errs.ValidationError{
-				Message: errs.ValidationProcessError.Error(),
+				Message: errs.ErrValidationProcess.Error(),
 				Status:  http.StatusBadRequest,
 				Errors: []errs.ValidationFieldError{
 					{"Content", MinLengthMessage, "ic"},
@@ -129,7 +129,7 @@ func TestValidator_ValidatePaste(t *testing.T) {
 				Password: "",
 			},
 			&errs.ValidationError{
-				Message: errs.ValidationProcessError.Error(),
+				Message: errs.ErrValidationProcess.Error(),
 				Status:  http.StatusBadRequest,
 				Errors: []errs.ValidationFieldError{
 					{"Content", RequiredFieldMessage, ""},
@@ -144,7 +144,7 @@ func TestValidator_ValidatePaste(t *testing.T) {
 				Password: "password",
 			},
 			&errs.ValidationError{
-				Message: errs.ValidationProcessError.Error(),
+				Message: errs.ErrValidationProcess.Error(),
 				Status:  http.StatusBadRequest,
 				Errors: []errs.ValidationFieldError{
 					{"Privacy", OneOfMessage, "wrong"},
@@ -159,7 +159,7 @@ func TestValidator_ValidatePaste(t *testing.T) {
 				Password: "pass",
 			},
 			&errs.ValidationError{
-				Message: errs.ValidationProcessError.Error(),
+				Message: errs.ErrValidationProcess.Error(),
 				Status:  http.StatusBadRequest,
 				Errors: []errs.ValidationFieldError{
 					{"Password", RequiredPasswordIfMessage, "pass"},
@@ -174,7 +174,7 @@ func TestValidator_ValidatePaste(t *testing.T) {
 				Password: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 			},
 			&errs.ValidationError{
-				Message: errs.ValidationProcessError.Error(),
+				Message: errs.ErrValidationProcess.Error(),
 				Status:  http.StatusBadRequest,
 				Errors: []errs.ValidationFieldError{
 					{"Password", RequiredPasswordIfMessage, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},

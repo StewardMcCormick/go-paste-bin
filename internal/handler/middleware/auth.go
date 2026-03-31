@@ -32,18 +32,18 @@ func (a *Auth) Handler(next http.Handler) http.Handler {
 		key := r.Header.Get(APIKeyHeader)
 		if !validation.ValidateAPIKey(key) {
 			log.Info("invalid key")
-			errs.SendAppError(r.Context(), w, http.StatusUnauthorized, errs.Unauthorized)
+			errs.SendAppError(r.Context(), w, http.StatusUnauthorized, errs.ErrUnauthorized)
 			return
 		}
 
 		userId, err := a.auth.Authenticate(r.Context(), key)
 		if err != nil {
-			if errors.Is(err, errs.Unauthorized) {
+			if errors.Is(err, errs.ErrUnauthorized) {
 				errs.SendAppError(r.Context(), w, http.StatusUnauthorized, err)
 				return
 			}
 
-			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, errs.InternalError)
+			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, errs.ErrInternal)
 			return
 		}
 

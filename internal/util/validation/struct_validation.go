@@ -44,7 +44,7 @@ func (uv *appValidator[T]) Validate(request T) error {
 
 func (uv *appValidator[T]) mapValidErrorToCustomError(err validator.ValidationErrors) error {
 	ve := errs.ValidationError{
-		Message: errs.ValidationProcessError.Error(),
+		Message: errs.ErrValidationProcess.Error(),
 		Status:  http.StatusBadRequest,
 		Errors:  make([]errs.ValidationFieldError, len(err)),
 	}
@@ -75,10 +75,6 @@ func (uv *appValidator[T]) convertTagToMessage(fe validator.FieldError) string {
 	default:
 		return fe.Error()
 	}
-}
-
-type privacyConstraint interface {
-	~struct{ Privacy string }
 }
 
 func passwordRequiredIfProtectedRule(fl validator.FieldLevel) bool {

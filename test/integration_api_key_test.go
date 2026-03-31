@@ -82,7 +82,7 @@ func (s *APIKeyRepoIntTest) Test_GetByHash_NotFound() {
 	result, err := s.repo.GetByKeyHash(context.Background(), "not_exist")
 
 	s.Nil(result)
-	s.ErrorIs(err, errs.APIKeyNotFound)
+	s.ErrorIs(err, errs.ErrAPIKeyNotFound)
 }
 
 func (s *APIKeyRepoIntTest) Test_Create_Success() {
@@ -139,6 +139,7 @@ func (s *APIKeyRepoIntTest) Test_RevokeByUserId_Success() {
 	time.Sleep(time.Second)
 	key, err := s.repo.GetByKeyHash(context.Background(), testAPIKey.Key)
 
+	s.Error(err)
 	s.Nil(key)
 }
 

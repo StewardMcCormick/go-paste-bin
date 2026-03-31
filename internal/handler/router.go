@@ -33,11 +33,11 @@ func NewRouter(
 	r := chi.NewRouter()
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		errs.SendAppError(r.Context(), w, http.StatusNotFound, errs.PageNotFound)
+		errs.SendAppError(r.Context(), w, http.StatusNotFound, errs.ErrPageNotFound)
 	})
 
 	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
-		errs.SendAppError(r.Context(), w, http.StatusMethodNotAllowed, errs.MethodNotAllowed)
+		errs.SendAppError(r.Context(), w, http.StatusMethodNotAllowed, errs.ErrMethodNotAllowed)
 	})
 
 	r.Use(logMid.Handler)

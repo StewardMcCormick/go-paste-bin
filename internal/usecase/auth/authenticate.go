@@ -17,17 +17,17 @@ func (uc *UseCase) Authenticate(ctx context.Context, apiKey string) (userId int6
 
 	key, err := uc.uow.Exec(ctx).APIKeyRepository().GetByKeyHash(ctx, hash)
 	if err != nil {
-		if errors.Is(err, errs.APIKeyNotFound) {
+		if errors.Is(err, errs.ErrAPIKeyNotFound) {
 			log.Info(fmt.Sprintf("api-key not found - %s", err))
-			return 0, fmt.Errorf("api-key not found - %w", errs.Unauthorized)
+			return 0, fmt.Errorf("api-key not found - %w", errs.ErrUnauthorized)
 		}
 
-		return 0, fmt.Errorf("%w - find key error", errs.InternalError)
+		return 0, fmt.Errorf("%w - find key error", errs.ErrInternal)
 	}
 	if key == nil || key.ExpiresAt.Compare(time.Now()) <= 0 {
 		log.Debug(fmt.Sprintf("Key from DB - %v", key))
 		log.Info("authentication failed")
-		return 0, fmt.Errorf("%w - key invalid or expired - you should get a new key", errs.Unauthorized)
+		return 0, fmt.Errorf("%w - key invalid or expired - you should get a new key", errs.ErrUnauthorized)
 	}
 
 	log.Info(

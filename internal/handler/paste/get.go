@@ -18,19 +18,19 @@ func (h *httpHandlers) GetPaste(w http.ResponseWriter, r *http.Request) {
 
 	req := dto.GetPasteRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
-		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.BadRequest))
+		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.ErrBadRequest))
 		return
 	}
 
 	result, err := h.useCase.GetByHash(r.Context(), req, pasteHash)
 	if err != nil {
-		if errors.Is(err, errs.PasteNotFound) {
+		if errors.Is(err, errs.ErrPasteNotFound) {
 			errs.SendAppError(r.Context(), w, http.StatusNotFound, err)
 			return
-		} else if errors.Is(err, errs.Forbidden) {
+		} else if errors.Is(err, errs.ErrForbidden) {
 			errs.SendAppError(r.Context(), w, http.StatusForbidden, err)
 			return
-		} else if errors.Is(err, errs.Unauthorized) {
+		} else if errors.Is(err, errs.ErrUnauthorized) {
 			errs.SendAppError(r.Context(), w, http.StatusUnauthorized, err)
 			return
 		}

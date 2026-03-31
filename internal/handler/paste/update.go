@@ -17,16 +17,16 @@ func (h *httpHandlers) UpdatePaste(w http.ResponseWriter, r *http.Request) {
 	hash := chi.URLParam(r, "pasteHash")
 
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.BadRequest))
+		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.ErrBadRequest))
 		return
 	}
 
 	resp, err := h.useCase.UpdatePaste(r.Context(), hash, req)
 	if err != nil {
-		if errors.Is(err, errs.PasteNotFound) {
+		if errors.Is(err, errs.ErrPasteNotFound) {
 			errs.SendAppError(r.Context(), w, http.StatusNotFound, err)
 			return
-		} else if errors.Is(err, errs.InternalError) {
+		} else if errors.Is(err, errs.ErrInternal) {
 			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, err)
 			return
 		}

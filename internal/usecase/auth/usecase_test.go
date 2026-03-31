@@ -177,10 +177,10 @@ func (s *UseCaseTestSuite) Test_Registration_Error() {
 			func() {
 				s.valid.EXPECT().
 					Validate(mock.Anything).
-					Return(errs.ValidationProcessError).
+					Return(errs.ErrValidationProcess).
 					Once()
 			},
-			errs.ValidationProcessError,
+			errs.ErrValidationProcess,
 		},
 		{
 			"Begin tx error",
@@ -195,7 +195,7 @@ func (s *UseCaseTestSuite) Test_Registration_Error() {
 					Return(nil, errors.New("begin tx error")).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Check user existing - Already Exists Error",
@@ -214,7 +214,7 @@ func (s *UseCaseTestSuite) Test_Registration_Error() {
 					Once()
 
 			},
-			errs.UserAlreadyExists,
+			errs.ErrUserAlreadyExists,
 		},
 		{
 			"Check user existing - Internal Error",
@@ -233,7 +233,7 @@ func (s *UseCaseTestSuite) Test_Registration_Error() {
 					Once()
 
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Hashing password error",
@@ -257,7 +257,7 @@ func (s *UseCaseTestSuite) Test_Registration_Error() {
 					Once()
 
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Generate API Key error",
@@ -286,7 +286,7 @@ func (s *UseCaseTestSuite) Test_Registration_Error() {
 					Once()
 
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"User create error",
@@ -325,7 +325,7 @@ func (s *UseCaseTestSuite) Test_Registration_Error() {
 					Once()
 
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"API key create error",
@@ -369,7 +369,7 @@ func (s *UseCaseTestSuite) Test_Registration_Error() {
 					Once()
 
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Commit Error",
@@ -416,7 +416,7 @@ func (s *UseCaseTestSuite) Test_Registration_Error() {
 					Commit(mock.Anything).
 					Return(errors.New("commit error"))
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 	}
 
@@ -497,10 +497,10 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 			func() {
 				s.valid.EXPECT().
 					Validate(mock.Anything).
-					Return(errs.ValidationProcessError).
+					Return(errs.ErrValidationProcess).
 					Once()
 			},
-			errs.ValidationProcessError,
+			errs.ErrValidationProcess,
 		},
 		{
 			"Begin tx error",
@@ -515,7 +515,7 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 					Return(nil, errors.New("begin tx error")).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Check user existing - user not found error",
@@ -532,7 +532,7 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 					Return(nil, nil).
 					Once()
 			},
-			errs.UserNotFound,
+			errs.ErrUserNotFound,
 		},
 		{
 			"Check user existing - internal error",
@@ -549,7 +549,7 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 					Return(nil, errors.New("db error")).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Incorrect password",
@@ -571,7 +571,7 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 					Return(false).
 					Once()
 			},
-			errs.Unauthorized,
+			errs.ErrUnauthorized,
 		},
 		{
 			"Revoke key - internal error",
@@ -598,7 +598,7 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 					Return(errors.New("db error")).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Generate API Key error",
@@ -630,7 +630,7 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 					Return("", "", errors.New("API key error")).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Create API Key error",
@@ -672,7 +672,7 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 					Return(nil, errors.New("db error")).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Create API Key error",
@@ -714,7 +714,7 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 					Return(nil, errors.New("db error")).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Commit tx error",
@@ -761,7 +761,7 @@ func (s *UseCaseTestSuite) Test_Login_Error() {
 					Return(errors.New("commit error")).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 	}
 
@@ -825,7 +825,7 @@ func (s *UseCaseTestSuite) Test_Authenticate_Error() {
 					Return(nil, errors.New("db error")).
 					Once()
 			},
-			errs.InternalError,
+			errs.ErrInternal,
 		},
 		{
 			"Key not found",
@@ -845,7 +845,7 @@ func (s *UseCaseTestSuite) Test_Authenticate_Error() {
 					Return(nil, nil).
 					Once()
 			},
-			errs.Unauthorized,
+			errs.ErrUnauthorized,
 		},
 		{
 			"Key expired",
@@ -865,7 +865,7 @@ func (s *UseCaseTestSuite) Test_Authenticate_Error() {
 					Return(&domain.APIKey{ExpiresAt: time.Now().Add(-1 * time.Hour)}, nil).
 					Once()
 			},
-			errs.Unauthorized,
+			errs.ErrUnauthorized,
 		},
 	}
 

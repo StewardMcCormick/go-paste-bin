@@ -80,7 +80,7 @@ func (s *HandlerTestSuite) Test_Login_Error() {
 					Login(mock.Anything, mock.MatchedBy(func(req *dto.UserRequest) bool {
 						return req.Username == "user" && req.Password == "password"
 					})).
-					Return(nil, errs.UserNotFound).
+					Return(nil, errs.ErrUserNotFound).
 					Once()
 			},
 			&dto.UserRequest{
@@ -90,13 +90,13 @@ func (s *HandlerTestSuite) Test_Login_Error() {
 			http.StatusNotFound,
 		},
 		{
-			"Unauthorized",
+			"ErrUnauthorized",
 			func() {
 				s.useCase.EXPECT().
 					Login(mock.Anything, mock.MatchedBy(func(req *dto.UserRequest) bool {
 						return req.Username == "user" && req.Password == "password"
 					})).
-					Return(nil, errs.Unauthorized).
+					Return(nil, errs.ErrUnauthorized).
 					Once()
 			},
 			&dto.UserRequest{
@@ -112,7 +112,7 @@ func (s *HandlerTestSuite) Test_Login_Error() {
 					Login(mock.Anything, mock.MatchedBy(func(req *dto.UserRequest) bool {
 						return req.Username == "user" && req.Password == "password"
 					})).
-					Return(nil, errs.InternalError).
+					Return(nil, errs.ErrInternal).
 					Once()
 			},
 			&dto.UserRequest{
@@ -232,7 +232,7 @@ func (s *HandlerTestSuite) Test_Registration_Error() {
 					Registration(mock.Anything, mock.MatchedBy(func(req *dto.UserRequest) bool {
 						return req.Username == "user" && req.Password == "password"
 					})).
-					Return(nil, errs.UserAlreadyExists).
+					Return(nil, errs.ErrUserAlreadyExists).
 					Once()
 			},
 			&dto.UserRequest{Username: "user", Password: "password"},
@@ -258,7 +258,7 @@ func (s *HandlerTestSuite) Test_Registration_Error() {
 					Registration(mock.Anything, mock.MatchedBy(func(req *dto.UserRequest) bool {
 						return req.Username == "user" && req.Password == "password"
 					})).
-					Return(nil, errs.InternalError).
+					Return(nil, errs.ErrInternal).
 					Once()
 			},
 			&dto.UserRequest{Username: "user", Password: "password"},

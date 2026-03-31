@@ -18,7 +18,7 @@ func SendAppError(ctx context.Context, w http.ResponseWriter, status int, messag
 	log := appctx.GetLogger(ctx)
 
 	w.Header().Set("Content-Type", "application/json")
-	if !errors.Is(message, InternalError) {
+	if !errors.Is(message, ErrInternal) {
 		log.Info(message.Error())
 	}
 

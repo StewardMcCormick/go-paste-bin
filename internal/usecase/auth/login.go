@@ -21,30 +21,30 @@ func (uc *UseCase) Login(ctx context.Context, user *dto.UserRequest) (*dto.APIKe
 
 	tx, err := uc.uow.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w - tx beggining error", errs.InternalError)
+		return nil, fmt.Errorf("%w - tx beggining error", errs.ErrInternal)
 	}
 	defer tx.Rollback(ctx)
 
 	userFromDb, err := tx.UserRepository().GetByUsername(ctx, user.Username)
 	if err != nil {
-		return nil, fmt.Errorf("%w - database error", errs.InternalError)
+		return nil, fmt.Errorf("%w - database error", errs.ErrInternal)
 	}
 	if userFromDb == nil {
-		return nil, errs.UserNotFound
+		return nil, errs.ErrUserNotFound
 	}
 	if !uc.securityUtil.CompareHashAndPassword(userFromDb.Password, user.Password) {
-		return nil, errs.Unauthorized
+		return nil, errs.ErrUnauthorized
 	}
 
 	err = tx.APIKeyRepository().RevokeKeyByUserId(ctx, userFromDb.Id)
 	if err != nil {
-		return nil, fmt.Errorf("%w - API key revoke error", errs.InternalError)
+		return nil, fmt.Errorf("%w - API key revoke error", errs.ErrInternal)
 	}
 
 	newKey, err := uc.generateNewKey(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("%s - API key generation error", err.Error()))
-		return nil, fmt.Errorf("%w - API key ganaration error", errs.InternalError)
+		return nil, fmt.Errorf("%w - API key ganaration error", errs.ErrInternal)
 	}
 
 	newKeyFromDb, err := tx.APIKeyRepository().Create(
@@ -57,13 +57,13 @@ func (uc *UseCase) Login(ctx context.Context, user *dto.UserRequest) (*dto.APIKe
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%w - API key creating error", errs.InternalError)
+		return nil, fmt.Errorf("%w - API key creating error", errs.ErrInternal)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
 		log.Error(err.Error())
-		return nil, fmt.Errorf("%w - tx commit error", errs.InternalError)
+		return nil, fmt.Errorf("%w - tx commit error", errs.ErrInternal)
 	}
 
 	newKeyFromDb.Key = newKey.Key

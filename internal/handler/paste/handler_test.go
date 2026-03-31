@@ -111,7 +111,7 @@ func (s *HandlerTestSuite) Test_Create_Error() {
 			func() {
 				s.useCase.EXPECT().
 					Create(mock.Anything, mock.Anything).
-					Return(nil, errs.InternalError).
+					Return(nil, errs.ErrInternal).
 					Once()
 			},
 			&dto.PasteRequest{},
@@ -122,7 +122,7 @@ func (s *HandlerTestSuite) Test_Create_Error() {
 			func() {
 				s.useCase.EXPECT().
 					Create(mock.Anything, mock.Anything).
-					Return(nil, errs.ValidationProcessError).
+					Return(nil, errs.ErrValidationProcess).
 					Once()
 			},
 			&dto.PasteRequest{},
@@ -228,13 +228,13 @@ func (s *HandlerTestSuite) Test_Get_Error() {
 					), mock.MatchedBy(func(hash string) bool {
 						return hash == "hash"
 					})).
-					Return(nil, errs.PasteNotFound)
+					Return(nil, errs.ErrPasteNotFound)
 			},
 			&dto.GetPasteRequest{Password: "pass"},
 			http.StatusNotFound,
 		},
 		{
-			"Forbidden",
+			"ErrForbidden",
 			func() {
 				s.useCase.EXPECT().
 					GetByHash(mock.Anything, mock.MatchedBy(func(req dto.GetPasteRequest) bool {
@@ -243,13 +243,13 @@ func (s *HandlerTestSuite) Test_Get_Error() {
 					), mock.MatchedBy(func(hash string) bool {
 						return hash == "hash"
 					})).
-					Return(nil, errs.Forbidden)
+					Return(nil, errs.ErrForbidden)
 			},
 			&dto.GetPasteRequest{Password: "pass"},
 			http.StatusForbidden,
 		},
 		{
-			"Unauthorized",
+			"ErrUnauthorized",
 			func() {
 				s.useCase.EXPECT().
 					GetByHash(mock.Anything, mock.MatchedBy(func(req dto.GetPasteRequest) bool {
@@ -258,7 +258,7 @@ func (s *HandlerTestSuite) Test_Get_Error() {
 					), mock.MatchedBy(func(hash string) bool {
 						return hash == "hash"
 					})).
-					Return(nil, errs.Unauthorized)
+					Return(nil, errs.ErrUnauthorized)
 			},
 			&dto.GetPasteRequest{Password: "pass"},
 			http.StatusUnauthorized,
@@ -273,7 +273,7 @@ func (s *HandlerTestSuite) Test_Get_Error() {
 					), mock.MatchedBy(func(hash string) bool {
 						return hash == "hash"
 					})).
-					Return(nil, errs.InternalError)
+					Return(nil, errs.ErrInternal)
 			},
 			&dto.GetPasteRequest{Password: "pass"},
 			http.StatusInternalServerError,
@@ -397,7 +397,7 @@ func (s *HandlerTestSuite) Test_Update_Error() {
 							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
 								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
 						})).
-					Return(nil, errs.PasteNotFound).
+					Return(nil, errs.ErrPasteNotFound).
 					Once()
 			},
 			testValue,
@@ -412,7 +412,7 @@ func (s *HandlerTestSuite) Test_Update_Error() {
 							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
 								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
 						})).
-					Return(nil, errs.InternalError).
+					Return(nil, errs.ErrInternal).
 					Once()
 			},
 			testValue,
@@ -442,7 +442,7 @@ func (s *HandlerTestSuite) Test_Update_Error() {
 							return req.Password == "pass" && req.Privacy == string(domain.PublicPolicy) &&
 								req.ExpireAt.Equal(now.Add(time.Hour)) && req.Content == "content"
 						})).
-					Return(nil, errs.BadRequest).
+					Return(nil, errs.ErrBadRequest).
 					Once()
 			},
 			testValue,

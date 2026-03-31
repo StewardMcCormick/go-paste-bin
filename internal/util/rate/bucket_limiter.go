@@ -49,11 +49,6 @@ redis.call("EXPIRE", key, 3600)
 return 1
 `
 
-type bucketLimiterValue struct {
-	BucketSize int       `json:"bucket_size"`
-	LastAccess time.Time `json:"last_access"`
-}
-
 type bucketLimiter struct {
 	client         *redis.Client
 	prefix         string

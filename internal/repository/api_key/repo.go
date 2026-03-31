@@ -36,7 +36,7 @@ func (r *Repository) Create(ctx context.Context, userId int64, key *domain.APIKe
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return nil, fmt.Errorf("api-key creating error - %w", errs.APIKeyAlreadyExists)
+			return nil, fmt.Errorf("api-key creating error - %w", errs.ErrAPIKeyAlreadyExists)
 		}
 
 		return nil, fmt.Errorf("api-key creating error - %w", err)
@@ -75,7 +75,7 @@ func (r *Repository) GetByKeyHash(ctx context.Context, hash string) (key *domain
 		Scan(&key.Key, &key.UserId, &key.CreatedAt, &key.ExpiresAt, &key.Prefix)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("api-key get error - %w", errs.APIKeyNotFound)
+			return nil, fmt.Errorf("api-key get error - %w", errs.ErrAPIKeyNotFound)
 		}
 		return nil, fmt.Errorf("api-key get error - %w", err)
 	}

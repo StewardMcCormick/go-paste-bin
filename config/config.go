@@ -31,6 +31,10 @@ type Config struct {
 func InitConfig() (*Config, error) {
 	err := godotenv.Load()
 
+	if err != nil {
+		panic(err)
+	}
+
 	cfg := &Config{}
 	err = cleanenv.ReadConfig("config.yaml", cfg)
 	if err != nil {

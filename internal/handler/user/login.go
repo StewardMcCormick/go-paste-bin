@@ -15,16 +15,16 @@ func (h *httpHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	user := &dto.UserRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.BadRequest))
+		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.ErrBadRequest))
 		return
 	}
 
 	key, err := h.authUseCase.Login(r.Context(), user)
 	if err != nil {
-		if errors.Is(err, errs.UserNotFound) {
+		if errors.Is(err, errs.ErrUserNotFound) {
 			errs.SendAppError(r.Context(), w, http.StatusNotFound, err)
 			return
-		} else if errors.Is(err, errs.Unauthorized) {
+		} else if errors.Is(err, errs.ErrUnauthorized) {
 			errs.SendAppError(r.Context(), w, http.StatusUnauthorized, err)
 			return
 		} else if errors.As(err, &errs.ValidationError{}) {

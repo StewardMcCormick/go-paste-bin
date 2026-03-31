@@ -46,7 +46,7 @@ func (r *Repository) Create(ctx context.Context, paste *domain.Paste) (*domain.P
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return nil, fmt.Errorf("paste create error - %w", errs.PasteAlreadyExists)
+			return nil, fmt.Errorf("paste create error - %w", errs.ErrPasteAlreadyExists)
 		}
 		return nil, fmt.Errorf("paste create error - %w", err)
 	}
@@ -57,7 +57,7 @@ func (r *Repository) Create(ctx context.Context, paste *domain.Paste) (*domain.P
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return nil, fmt.Errorf("paste create error - %w", errs.PasteAlreadyExists)
+			return nil, fmt.Errorf("paste create error - %w", errs.ErrPasteAlreadyExists)
 		}
 		return nil, fmt.Errorf("paste create error - %w", err)
 	}
@@ -75,7 +75,7 @@ func (r *Repository) GetByHash(ctx context.Context, hash string) (*domain.Paste,
 		paste, err := r.getInfoByHash(ctx, hash)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
-				return nil, fmt.Errorf("paste get error - %w", errs.PasteNotFound)
+				return nil, fmt.Errorf("paste get error - %w", errs.ErrPasteNotFound)
 			}
 			return nil, fmt.Errorf("paste get error - %w", err)
 		}
@@ -88,7 +88,7 @@ func (r *Repository) GetByHash(ctx context.Context, hash string) (*domain.Paste,
 	paste, err := r.getFullPasteByHash(ctx, hash)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("paste get error - %w", errs.PasteNotFound)
+			return nil, fmt.Errorf("paste get error - %w", errs.ErrPasteNotFound)
 		}
 		return nil, fmt.Errorf("paste get error - %w", err)
 	}
@@ -163,7 +163,7 @@ func (r *Repository) Update(ctx context.Context, paste *domain.Paste) (*domain.P
 	err = tx.QueryRow(ctx, query, paste.Privacy, paste.PasswordHash, paste.ExpireAt, paste.Hash).Scan(&id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("paste update error - %w", errs.PasteNotFound)
+			return nil, fmt.Errorf("paste update error - %w", errs.ErrPasteNotFound)
 		}
 		return nil, fmt.Errorf("paste update error - %w", err)
 	}
@@ -173,7 +173,7 @@ func (r *Repository) Update(ctx context.Context, paste *domain.Paste) (*domain.P
 	_, err = tx.Exec(ctx, query, paste.Content, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("paste update error - %w", errs.PasteNotFound)
+			return nil, fmt.Errorf("paste update error - %w", errs.ErrPasteNotFound)
 		}
 		return nil, fmt.Errorf("paste update error - %w", err)
 	}

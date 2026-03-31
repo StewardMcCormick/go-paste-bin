@@ -31,7 +31,7 @@ func (r *Repository) Create(ctx context.Context, user *domain.User) (*domain.Use
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return nil, fmt.Errorf("api-key creating error - %w", errs.UserAlreadyExists)
+			return nil, fmt.Errorf("api-key creating error - %w", errs.ErrUserAlreadyExists)
 		}
 
 		return nil, fmt.Errorf("api-key creating error - %w", err)
@@ -49,7 +49,7 @@ func (r *Repository) GetByUsername(ctx context.Context, username string) (*domai
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("user get error - %w", errs.UserNotFound)
+			return nil, fmt.Errorf("user get error - %w", errs.ErrUserNotFound)
 		}
 		return nil, err
 	}

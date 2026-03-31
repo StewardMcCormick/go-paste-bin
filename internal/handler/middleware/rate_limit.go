@@ -35,12 +35,12 @@ func (l *IPLimiter) Handler(next http.Handler) http.Handler {
 
 		allowed, err := l.limiter.AllowRequest(r.Context(), ip)
 		if err != nil {
-			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, errs.InternalError)
+			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, errs.ErrInternal)
 			return
 		}
 
 		if !allowed {
-			errs.SendAppError(r.Context(), w, http.StatusTooManyRequests, errs.TooManyRequests)
+			errs.SendAppError(r.Context(), w, http.StatusTooManyRequests, errs.ErrTooManyRequests)
 			return
 		}
 
@@ -52,7 +52,7 @@ func (l *UserIdLimiter) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := appctx.GetUserId(r.Context())
 		if err != nil {
-			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, errs.InternalError)
+			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, errs.ErrInternal)
 			return
 		}
 
@@ -63,7 +63,7 @@ func (l *UserIdLimiter) Handler(next http.Handler) http.Handler {
 		}
 
 		if !allowed {
-			errs.SendAppError(r.Context(), w, http.StatusTooManyRequests, errs.TooManyRequests)
+			errs.SendAppError(r.Context(), w, http.StatusTooManyRequests, errs.ErrTooManyRequests)
 			return
 		}
 

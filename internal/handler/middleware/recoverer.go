@@ -21,7 +21,7 @@ func (m *Recoverer) Handler(next http.Handler) http.Handler {
 			if err := recover(); err != nil {
 				logger := appctx.GetLogger(r.Context())
 				logger.Error(fmt.Sprintf("[PANIC] %v", fmt.Sprint(err)))
-				errs.SendAppError(r.Context(), w, http.StatusInternalServerError, errs.InternalError)
+				errs.SendAppError(r.Context(), w, http.StatusInternalServerError, errs.ErrInternal)
 			}
 		}()
 

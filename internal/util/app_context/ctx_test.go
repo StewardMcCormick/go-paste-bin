@@ -63,7 +63,7 @@ func TestEnv_Error(t *testing.T) {
 
 	ctxEnv, err := GetEnv(ctx)
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, InvalidEnvError)
+	assert.ErrorIs(t, err, ErrInvalidEnv)
 	assert.Equal(t, cfgutil.Env(""), ctxEnv)
 }
 
@@ -84,6 +84,6 @@ func TestUserId_Error(t *testing.T) {
 	ctxId, err := GetUserId(ctx)
 
 	assert.Error(t, err)
-	assert.ErrorIs(t, err, InvalidUserIdError)
+	assert.ErrorIs(t, err, ErrInvalidUserId)
 	assert.Equal(t, int64(0), ctxId)
 }

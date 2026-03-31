@@ -5,26 +5,26 @@ import (
 )
 
 var (
-	InternalError          = errors.New("internal error")
-	Unauthorized           = errors.New("unauthorized")
-	Forbidden              = errors.New("forbidden")
-	PageNotFound           = errors.New("page not found")
-	MethodNotAllowed       = errors.New("method not allowed")
-	ValidationProcessError = errors.New("validation error")
-	TooManyRequests        = errors.New("too many requests")
-	BadRequest             = errors.New("bad request")
+	ErrInternal          = errors.New("internal error")
+	ErrUnauthorized      = errors.New("unauthorized")
+	ErrForbidden         = errors.New("forbidden")
+	ErrPageNotFound      = errors.New("page not found")
+	ErrMethodNotAllowed  = errors.New("method not allowed")
+	ErrValidationProcess = errors.New("validation error")
+	ErrTooManyRequests   = errors.New("too many requests")
+	ErrBadRequest        = errors.New("bad request")
 
 	// User Domain error
-	UserAlreadyExists = errors.New("user already exists")
-	UserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrUserNotFound      = errors.New("user not found")
 
 	// API-key Domain error
-	APIKeyAlreadyExists = errors.New("API-key already exists")
-	APIKeyNotFound      = errors.New("API key not found")
+	ErrAPIKeyAlreadyExists = errors.New("API-key already exists")
+	ErrAPIKeyNotFound      = errors.New("API key not found")
 
 	// Paste Domain error
-	PasteNotFound      = errors.New("paste not found")
-	PasteAlreadyExists = errors.New("paste already exists")
+	ErrPasteNotFound      = errors.New("paste not found")
+	ErrPasteAlreadyExists = errors.New("paste already exists")
 )
 
 type BaseError struct {

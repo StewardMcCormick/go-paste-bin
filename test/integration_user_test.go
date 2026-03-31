@@ -48,7 +48,7 @@ func (s *UserRepoIntTestSuite) Test_GetByUsername_Success() {
 func (s *UserRepoIntTestSuite) Test_GetByUsername_NotFound() {
 	result, err := s.repo.GetByUsername(context.Background(), "not_exist")
 
-	s.ErrorIs(err, errs.UserNotFound)
+	s.ErrorIs(err, errs.ErrUserNotFound)
 	s.Nil(result)
 }
 

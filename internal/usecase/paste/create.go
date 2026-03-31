@@ -21,7 +21,7 @@ func (uc *UseCase) Create(ctx context.Context, request *dto.PasteRequest) (*dto.
 	userId, err := appctx.GetUserId(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("%v - user id parsing error", err))
-		return nil, fmt.Errorf("%w - user id parsing error", errs.InternalError)
+		return nil, fmt.Errorf("%w - user id parsing error", errs.ErrInternal)
 	}
 
 	requestToDomain := &domain.Paste{
@@ -39,7 +39,7 @@ func (uc *UseCase) Create(ctx context.Context, request *dto.PasteRequest) (*dto.
 		hashedPassword, err := uc.security.HashPassword(request.Password)
 		if err != nil {
 			log.Error(fmt.Sprintf("Hashing password error - %v", err))
-			return nil, fmt.Errorf("%w - password hashing error", errs.InternalError)
+			return nil, fmt.Errorf("%w - password hashing error", errs.ErrInternal)
 		}
 
 		requestToDomain.PasswordHash = hashedPassword
@@ -48,14 +48,14 @@ func (uc *UseCase) Create(ctx context.Context, request *dto.PasteRequest) (*dto.
 	hash, err := uc.security.GeneratePasteHash()
 	if err != nil {
 		log.Error(fmt.Sprintf("%v - ganaration rand string error", err))
-		return nil, fmt.Errorf("%w - ganaration rand string error", errs.InternalError)
+		return nil, fmt.Errorf("%w - ganaration rand string error", errs.ErrInternal)
 	}
 	requestToDomain.Hash = hash
 
 	paste, err := uc.repo.Create(ctx, requestToDomain)
 	if err != nil {
 		log.Error(fmt.Sprintf("%v - Paste saving error", err))
-		return nil, fmt.Errorf("%w - Paste saving error", errs.InternalError)
+		return nil, fmt.Errorf("%w - Paste saving error", errs.ErrInternal)
 	}
 
 	return paste.ToResponse(), nil

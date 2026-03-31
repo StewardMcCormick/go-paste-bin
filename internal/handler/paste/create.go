@@ -14,13 +14,13 @@ import (
 func (h *httpHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	req := &dto.PasteRequest{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.BadRequest))
+		errs.SendAppError(r.Context(), w, http.StatusBadRequest, fmt.Errorf("%w - invalid JSON", errs.ErrBadRequest))
 		return
 	}
 
 	resp, err := h.useCase.Create(r.Context(), req)
 	if err != nil {
-		if errors.Is(err, errs.InternalError) {
+		if errors.Is(err, errs.ErrInternal) {
 			errs.SendAppError(r.Context(), w, http.StatusInternalServerError, err)
 			return
 		}

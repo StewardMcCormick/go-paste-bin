@@ -21,28 +21,28 @@ func (uc *UseCase) Registration(ctx context.Context, user *dto.UserRequest) (*dt
 
 	tx, err := uc.uow.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w - tx beggining error", errs.InternalError)
+		return nil, fmt.Errorf("%w - tx beggining error", errs.ErrInternal)
 	}
 	defer tx.Rollback(ctx)
 
 	userFromDb, err := tx.UserRepository().GetByUsername(ctx, user.Username)
 	if err != nil {
-		return nil, fmt.Errorf("%w - database error", errs.InternalError)
+		return nil, fmt.Errorf("%w - database error", errs.ErrInternal)
 	}
 	if userFromDb != nil {
-		return nil, errs.UserAlreadyExists
+		return nil, errs.ErrUserAlreadyExists
 	}
 
 	hashedPass, err := uc.securityUtil.HashPassword(user.Password)
 	if err != nil {
 		log.Warn(fmt.Sprintf("%s - password hashing error", err.Error()))
-		return nil, fmt.Errorf("%w - password hashing error", errs.InternalError)
+		return nil, fmt.Errorf("%w - password hashing error", errs.ErrInternal)
 	}
 
 	key, err := uc.generateNewKey(ctx)
 	if err != nil {
 		log.Error(fmt.Sprintf("%s - API key generation error", err.Error()))
-		return nil, fmt.Errorf("%w - API key generation error", errs.InternalError)
+		return nil, fmt.Errorf("%w - API key generation error", errs.ErrInternal)
 	}
 
 	now := time.Now()
@@ -54,7 +54,7 @@ func (uc *UseCase) Registration(ctx context.Context, user *dto.UserRequest) (*dt
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%w - user create error", errs.InternalError)
+		return nil, fmt.Errorf("%w - user create error", errs.ErrInternal)
 	}
 
 	createdApiKey, err := tx.APIKeyRepository().Create(
@@ -67,13 +67,13 @@ func (uc *UseCase) Registration(ctx context.Context, user *dto.UserRequest) (*dt
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%w - API key create error", errs.InternalError)
+		return nil, fmt.Errorf("%w - API key create error", errs.ErrInternal)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
 		log.Error(err.Error())
-		return nil, fmt.Errorf("%w - tx commit error", errs.InternalError)
+		return nil, fmt.Errorf("%w - tx commit error", errs.ErrInternal)
 	}
 
 	createdApiKey.Key = key.Key

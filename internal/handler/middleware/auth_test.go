@@ -30,15 +30,6 @@ func (s *AuthMiddlewareTestSuite) SetupTest() {
 	s.middleware = NewAuth(s.auth)
 }
 
-func (s *AuthMiddlewareTestSuite) getTestHandler(body []byte) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		if body != nil {
-			w.Write(body)
-		}
-	})
-}
-
 func (s *AuthMiddlewareTestSuite) Test_Auth_Success() {
 	validApiKey := "pb_test_abcd_acbdefghijkl"
 	body := []byte(`{"message": "hello"`)
@@ -89,11 +80,11 @@ func (s *AuthMiddlewareTestSuite) Test_Auth_Error() {
 			http.StatusUnauthorized,
 		},
 		{
-			"Auth Service Error - Unauthorized",
+			"Auth Service Error - ErrUnauthorized",
 			func() {
 				s.auth.EXPECT().
 					Authenticate(mock.Anything, mock.Anything).
-					Return(0, errs.Unauthorized).
+					Return(0, errs.ErrUnauthorized).
 					Once()
 			},
 			"pb_test_abcd_acbdefghijkl",
@@ -104,7 +95,7 @@ func (s *AuthMiddlewareTestSuite) Test_Auth_Error() {
 			func() {
 				s.auth.EXPECT().
 					Authenticate(mock.Anything, mock.Anything).
-					Return(0, errs.InternalError).
+					Return(0, errs.ErrInternal).
 					Once()
 			},
 			"pb_test_abcd_acbdefghijkl",

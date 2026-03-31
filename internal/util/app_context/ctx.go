@@ -13,8 +13,8 @@ type envKey string
 type userIdKey string
 
 var (
-	InvalidEnvError    = errors.New("incorrect value for env")
-	InvalidUserIdError = errors.New("incorrect value for user id")
+	ErrInvalidEnv    = errors.New("incorrect value for env")
+	ErrInvalidUserId = errors.New("incorrect value for user id")
 
 	LoggerKey loggerCtxKey = "logger"
 	EnvKey    envKey       = "env"
@@ -41,7 +41,7 @@ func WithEnv(parent context.Context, env cfgutil.Env) context.Context {
 func GetEnv(ctx context.Context) (cfgutil.Env, error) {
 	env, ok := ctx.Value(EnvKey).(cfgutil.Env)
 	if !ok {
-		return "", InvalidEnvError
+		return "", ErrInvalidEnv
 	}
 
 	return env, nil
@@ -54,7 +54,7 @@ func WithUserId(parent context.Context, userId int64) context.Context {
 func GetUserId(ctx context.Context) (int64, error) {
 	id, ok := ctx.Value(UserIdKey).(int64)
 	if !ok {
-		return 0, InvalidUserIdError
+		return 0, ErrInvalidUserId
 	}
 
 	return id, nil
